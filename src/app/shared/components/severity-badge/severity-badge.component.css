@@ -1,0 +1,53 @@
+:host {
+  display: inline-flex;
+}
+
+.severity-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(123, 134, 255, 0.14);
+  background: rgba(11, 18, 31, 0.9);
+  color: #edf3ff;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.28);
+}
+
+:host-context(html[data-theme='dark']) .severity-badge {
+  border-color: var(--app-border);
+  background: rgba(11, 18, 31, 0.9);
+  color: #edf3ff;
+  box-shadow: 0 12px 22px rgba(0, 0, 0, 0.18);
+}
+
+.severity-badge[data-severity='CRITICAL'] {
+  border-color: rgba(255, 107, 74, 0.24);
+  background: rgba(255, 107, 74, 0.12);
+  color: #ffd1c7;
+}
+
+.severity-badge[data-severity='HIGH'] {
+  border-color: rgba(251, 191, 36, 0.24);
+  background: rgba(251, 191, 36, 0.12);
+  color: #ffe29a;
+}
+
+.severity-badge[data-severity='MEDIUM'],
+.severity-badge[data-severity='MAJOR'] {
+  border-color: rgba(34, 211, 238, 0.24);
+  background: rgba(34, 211, 238, 0.1);
+  color: #b9f8ff;
+}
+
+.severity-badge[data-severity='LOW'],
+.severity-badge[data-severity='OPEN'] {
+  border-color: rgba(34, 197, 94, 0.22);
+  background: rgba(34, 197, 94, 0.1);
+  color: #bbf7d0;
+}

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr" class="">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="theme-color" content="#0a0f1e"/>
+  <meta name="description" content="Supervision intelligente des logs applicatifs — Tunisie Télécom AI Platform"/>
+
+  <title>TelecomAI — Supervision Intelligente</title>
+
+  <!-- Favicon with PNG image -->
+<link rel="icon" type="image/x-icon" href="assets/images/favicon.ico" sizes="any"/>
+<link rel="icon" type="image/png" href="assets/images/favicon.ico" sizes="256x256"/>
+<link rel="icon" type="image/png" href="assets/images/favicon.ico" sizes="128x128"/>
+<link rel="icon" type="image/png" href="assets/images/favicon.ico" sizes="64x64"/>
+    
+  <!-- Alternative favicon for older browsers -->
+  <link rel="shortcut icon" type="image/x-icon" href="assets/images/favicon.ico"/>
+  
+  <!-- Apple touch icon for better display on mobile -->
+  <link rel="apple-touch-icon" href="assets/images/favicon.ico" sizes="256x256"/>
+
+  <!-- Preconnect for Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+
+  <!-- Critical inline style: prevent flash of unstyled content -->
+  <style>
+    html, body { margin: 0; padding: 0; background: #f8fafc; }
+    html.dark, html.dark body { background: #020617; }
+
+    /* Splash screen shown before Angular boots */
+    #app-loading {
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 16px;
+      background: #020617;
+      transition: opacity 300ms ease-out;
+    }
+    #app-loading.hidden { opacity: 0; pointer-events: none; }
+
+    .splash-logo {
+      width: 56px; height: 56px; border-radius: 14px;
+      background: #02096879; display: flex; align-items: center; justify-content: center;
+      animation: splash-pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes splash-pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(14,165,233,0.4); }
+      50%      { box-shadow: 0 0 0 14px rgba(14,165,233,0); }
+    }
+    .splash-name {
+      font-family: 'DM Mono', 'Courier New', monospace;
+      font-size: 15px; font-weight: 600;
+      letter-spacing: 0.08em; color: #f1f5f9;
+    }
+    .splash-sub {
+      font-size: 11px; letter-spacing: 0.12em;
+      text-transform: uppercase; color: #64748b;
+      margin-top: -10px;
+    }
+    .splash-spinner {
+      width: 28px; height: 28px;
+      animation: spin 0.75s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+
+<body>
+
+  <!-- Splash screen (hidden once Angular boots) -->
+  <div id="app-loading">
+    <div class="splash-logo" style="width: 72px; height: 72px; border-radius: 16px;">
+  <img src="assets/images/TelecomAI.png" width="150" height="150" alt="TelecomAI Logo" style="border-radius: 10px; object-fit: contain;">
+</div>
+    <span class="splash-name">TelecomAI</span>
+    <span class="splash-sub">Supervision Intelligente</span>
+    <svg class="splash-spinner" viewBox="0 0 28 28" fill="none">
+      <circle cx="14" cy="14" r="11" stroke="rgba(255,255,255,.15)" stroke-width="2.5"/>
+      <path d="M14 3a11 11 0 0111 11" stroke="#0ea5e9" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
+  </div>
+
+  <!-- Angular root component -->
+  <app-root></app-root>
+
+  <!-- Hide splash once Angular is ready -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Angular fires a custom event when app is stable; fallback: 4s
+      const splash = document.getElementById('app-loading');
+      if (!splash) return;
+      const hide = () => { splash.classList.add('hidden'); setTimeout(() => splash.remove(), 350); };
+      window.__hideSplash = hide;
+      setTimeout(hide, 4000); // fallback
+    });
+  </script>
+
+</body>
+</html>

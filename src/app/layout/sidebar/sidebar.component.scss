@@ -1,0 +1,344 @@
+// sidebar.component.scss
+// ─── Sidebar — thème industriel télécom ──────────────────────────────────────
+
+:host {
+  display: block;
+  height: 100vh;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border-sidebar);
+  overflow: hidden;
+  position: relative;
+
+  // Subtle scan-line texture
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(255,255,255,0.012) 3px,
+      rgba(255,255,255,0.012) 4px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  > * { position: relative; z-index: 1; }
+
+  &.collapsed {
+    .logo-text,
+    .role-badge,
+    .nav-label,
+    .nav-badge,
+    .nav-section-label,
+    .nav-divider-label,
+    .user-info,
+    .logout-btn { display: none; }
+
+    .logo-area { padding: 16px 18px; justify-content: center; }
+    .collapse-btn { position: absolute; right: -10px; top: 20px; }
+    .nav-item { justify-content: center; padding: 10px; }
+    .user-area { justify-content: center; padding: 16px 0; }
+    .user-avatar { margin: 0; }
+  }
+}
+
+// ── Logo ─────────────────────────────────────────────────────────────────────
+
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--border-sidebar);
+  position: relative;
+}
+
+.logo-mark {
+  flex-shrink: 0;
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  min-width: 0;
+}
+
+.logo-name {
+  font-family: 'DM Mono', 'Fira Code', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: #919eaba3;
+}
+
+.logo-sub {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.collapse-btn {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 150ms ease;
+
+  &:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+    border-color: var(--border-default);
+  }
+}
+
+// ── Role Badge ────────────────────────────────────────────────────────────────
+
+.role-badge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px 12px;
+}
+
+.role-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  &.dot-red   { background: #f87171; &::after { box-shadow: 0 0 0 0 rgba(248,113,113,0.4); } }
+  &.dot-green { background: #4ade80; &::after { box-shadow: 0 0 0 0 rgba(74,222,128,0.4); } }
+  &.dot-blue  { background: #60a5fa; &::after { box-shadow: 0 0 0 0 rgba(96,165,250,0.4); } }
+  &.dot-gray  { background: #9ca3af; }
+}
+
+.role-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+.role-badge-mini {
+  display: flex;
+  justify-content: center;
+  padding: 6px 0 10px;
+}
+
+.role-dot-mini {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+
+  &.dot-red   { background: #f87171; }
+  &.dot-green { background: #4ade80; }
+  &.dot-blue  { background: #60a5fa; }
+  &.dot-gray  { background: #9ca3af; }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+  50%       { box-shadow: 0 0 0 4px transparent; }
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+
+.nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+.nav-section-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  padding: 10px 8px 4px;
+}
+
+.nav-divider {
+  height: 1px;
+  background: var(--border-sidebar);
+  margin: 8px 0;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 450;
+  letter-spacing: 0.01em;
+  transition: background 150ms, color 150ms;
+  position: relative;
+  white-space: nowrap;
+
+  &:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
+  &.active {
+    background: var(--bg-active);
+    color: var(--accent);
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 6px;
+      bottom: 6px;
+      width: 3px;
+      border-radius: 0 2px 2px 0;
+      background: var(--accent);
+    }
+
+    .nav-icon { color: var(--accent); }
+  }
+
+  &.ai {
+    &.active { color: var(--accent-ai); &::before { background: var(--accent-ai); } }
+    &:hover { color: var(--accent-ai); }
+  }
+}
+
+.nav-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  opacity: 0.85;
+
+  svg { width: 18px; height: 18px; }
+}
+
+.nav-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nav-badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: rgba(239, 68, 68, 0.18);
+  color: #f87171;
+  text-transform: uppercase;
+
+  &.ai {
+    background: rgba(var(--accent-ai-rgb), 0.18);
+    color: var(--accent-ai);
+  }
+}
+
+// ── User Area ─────────────────────────────────────────────────────────────────
+
+.user-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-top: 1px solid var(--border-sidebar);
+  margin-top: auto;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.05em;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.user-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #919eaba3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-role {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 150ms;
+  flex-shrink: 0;
+
+  &:hover {
+    background: rgba(239, 68, 68, 0.12);
+    color: #f87171;
+  }
+}

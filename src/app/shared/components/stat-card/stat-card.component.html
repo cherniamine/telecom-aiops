@@ -1,0 +1,10 @@
+<article class="stat-card" [attr.data-tone]="tone">
+  <div class="stat-card__header">
+    <app-icon class="stat-card__icon" *ngIf="icon" [name]="icon" [size]="18"></app-icon>
+    <div>
+      <p class="stat-card__label">{{ title || label }}</p>
+      <p class="stat-card__detail" *ngIf="detail">{{ detail }}</p>
+    </div>
+  </div>
+  <strong class="stat-card__value">{{ value }}</strong>
+</article>

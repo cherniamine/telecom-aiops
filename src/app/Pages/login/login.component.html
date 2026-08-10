@@ -1,0 +1,203 @@
+<div class="login-card">
+
+  <!-- Overlay de blocage pendant le chargement -->
+  @if (loading) {
+    <div class="lc-overlay">
+      <div class="loader"></div>
+    </div>
+  }
+
+  <!-- Header -->
+  <div class="lc-header">
+    <div class="lc-logo">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <rect width="32" height="32" rx="8" fill="#0ea5e9"/>
+        <rect x="6" y="6" width="8" height="8" rx="1.5" fill="white" opacity="0.9"/>
+        <rect x="18" y="6" width="8" height="8" rx="1.5" fill="white" opacity="0.55"/>
+        <rect x="6" y="18" width="8" height="8" rx="1.5" fill="white" opacity="0.55"/>
+        <rect x="18" y="18" width="8" height="8" rx="1.5" fill="white" opacity="0.9"/>
+      </svg>
+    </div>
+    <div>
+      <h2 class="lc-title">Connexion</h2>
+      <p class="lc-sub">TelecomAI Dashboard</p>
+    </div>
+  </div>
+
+  <!-- Quick login buttons -->
+  
+  <div class="lc-section-label">Connexion rapide</div>
+  <div class="lc-quick">
+    @for (acc of demoAccounts; track acc.username) {
+      <button
+        class="lc-quick-btn"
+        [ngClass]="'qb-' + acc.color"
+        (click)="quickLogin(acc)"
+        [disabled]="loading"
+        [style.pointer-events]="loading ? 'none' : 'auto'"
+        type="button"
+      >
+        <span class="qb-icon">
+          @switch (acc.color) {
+
+            @case ('red') {
+              <!-- NOC Operator : écran de monitoring avec signal -->
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <rect x="1.5" y="2" width="13" height="9" rx="1.5" stroke="currentColor" stroke-width="1.3"/>
+                <path d="M5 14h6M8 11v3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                <path d="M4 7.5l1.5-2 2 2.5 1.5-2 1.5 2" stroke="currentColor" stroke-width="1.2"
+                      stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            }
+
+            @case ('green') {
+              <!-- Manager : organigramme / hiérarchie -->
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <rect x="5.5" y="1.5" width="5" height="3.5" rx="1" stroke="currentColor" stroke-width="1.3"/>
+                <rect x="1" y="11" width="4.5" height="3.5" rx="1" stroke="currentColor" stroke-width="1.3"/>
+                <rect x="5.75" y="11" width="4.5" height="3.5" rx="1" stroke="currentColor" stroke-width="1.3"/>
+                <rect x="10.5" y="11" width="4.5" height="3.5" rx="1" stroke="currentColor" stroke-width="1.3"/>
+                <path d="M8 5v2.5M8 7.5H3.25v3M8 7.5h4.75v3M8 7.5v3"
+                      stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+              </svg>
+            }
+
+            @case ('blue') {
+              <!-- Engineer : clé à molette + engrenage -->
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <circle cx="9.5" cy="6.5" r="2.5" stroke="currentColor" stroke-width="1.3"/>
+                <path d="M9.5 4V2.5M9.5 10.5V9M7.2 4.7l-1-1M12.8 8.3l-1-1M7.2 8.3l-1 1M12.8 4.7l-1 1M7 6.5H5.5M13.5 6.5H12"
+                      stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                <path d="M2 14l4.5-4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M2 12.5l1.5 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+              </svg>
+            }
+
+          }
+        </span>
+        <span class="qb-label">{{ acc.label }}</span>
+      </button>
+    }
+  </div>
+
+  <!-- Divider -->
+  <div class="lc-divider">
+    <span>ou connexion manuelle</span>
+  </div>
+
+  <!-- Form -->
+  <form class="lc-form" (ngSubmit)="submit()" #f="ngForm" novalidate>
+
+    <div class="lc-field">
+      <label class="lc-label" for="username">Utilisateur</label>
+      <div class="lc-input-wrap">
+        <svg class="lc-input-icon" width="15" height="15" viewBox="0 0 15 15" fill="none">
+          <circle cx="7.5" cy="5" r="3" stroke="currentColor" stroke-width="1.3"/>
+          <path d="M2 13c0-3 2.5-5 5.5-5s5.5 2 5.5 5" stroke="currentColor"
+                stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        <input
+          id="username"
+          class="lc-input"
+          type="text"
+          [(ngModel)]="username"
+          name="username"
+          placeholder="noc_operator"
+          autocomplete="username"
+          [disabled]="loading"
+          [style.pointer-events]="loading ? 'none' : 'auto'"
+        />
+      </div>
+    </div>
+
+    <div class="lc-field">
+      <label class="lc-label" for="password">Mot de passe</label>
+      <div class="lc-input-wrap">
+        <svg class="lc-input-icon" width="15" height="15" viewBox="0 0 15 15" fill="none">
+          <rect x="2.5" y="6" width="10" height="7.5" rx="2" stroke="currentColor" stroke-width="1.3"/>
+          <path d="M5 6V4.5a2.5 2.5 0 015 0V6" stroke="currentColor" stroke-width="1.3"/>
+        </svg>
+        <input
+          id="password"
+          class="lc-input"
+          [type]="showPass ? 'text' : 'password'"
+          [(ngModel)]="password"
+          name="password"
+          placeholder="••••••••"
+          autocomplete="current-password"
+          [disabled]="loading"
+          [style.pointer-events]="loading ? 'none' : 'auto'"
+        />
+        <button 
+          class="lc-show-pass" 
+          type="button" 
+          (click)="showPass = !showPass"
+          [disabled]="loading"
+          [style.pointer-events]="loading ? 'none' : 'auto'"
+          [attr.aria-label]="showPass ? 'Masquer' : 'Afficher'"
+        >
+          @if (!showPass) {
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+              <path d="M1 7.5S3.5 3 7.5 3s6.5 4.5 6.5 4.5S11.5 12 7.5 12 1 7.5 1 7.5z"
+                    stroke="currentColor" stroke-width="1.3"/>
+              <circle cx="7.5" cy="7.5" r="2" stroke="currentColor" stroke-width="1.3"/>
+            </svg>
+          }
+          @if (showPass) {
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+              <path d="M2 2l11 11M6.5 4.5a4.5 4.5 0 016 6M3.5 6A6.5 6.5 0 001 7.5s2.5 4.5 6.5 4.5c1 0 2-.2 2.8-.6"
+                    stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+            </svg>
+          }
+        </button>
+      </div>
+    </div>
+
+    <!-- Error -->
+    @if (error) {
+      <div class="lc-error" role="alert">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.3"/>
+          <path d="M7 4v3.5M7 9v.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        {{ error }}
+      </div>
+    }
+
+    <!-- Submit -->
+    <button 
+      class="lc-submit" 
+      type="submit" 
+      [disabled]="loading"
+      [style.pointer-events]="loading ? 'none' : 'auto'"
+    >
+      @if (!loading) {
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M8 3v10M3 8l5 5 5-5" stroke="currentColor" stroke-width="1.4"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      }
+      @if (loading) {
+        <svg class="spin" width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="8" r="6" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+          <path d="M8 2a6 6 0 016 6" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      }
+      {{ loading ? 'Connexion...' : 'Se connecter' }}
+    </button>
+  </form>
+
+  <!-- Demo credentials hint -->
+  <div class="lc-hint">
+    <span class="hint-title">Comptes de démo</span>
+    <div class="hint-row">
+      <span class="hint-user">noc_operator</span><span class="hint-pass">noc123</span>
+    </div>
+    <div class="hint-row">
+      <span class="hint-user">manager_demo</span><span class="hint-pass">mgr123</span>
+    </div>
+    <div class="hint-row">
+      <span class="hint-user">engineer_demo</span><span class="hint-pass">eng123</span>
+    </div>
+  </div>
+</div>

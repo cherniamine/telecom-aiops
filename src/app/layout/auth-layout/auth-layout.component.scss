@@ -1,0 +1,175 @@
+// auth-layout.component.scss
+// ─── Auth Shell ───────────────────────────────────────────────────────────────
+
+:host { display: block; height: 100vh; }
+
+.auth-shell {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    .auth-brand { display: none; }
+  }
+}
+
+// ── Background grid ───────────────────────────────────────────────────────────
+
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    linear-gradient(var(--border-subtle) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+// ── Brand panel ───────────────────────────────────────────────────────────────
+
+.auth-brand {
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border-sidebar);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+
+  // Glow de fond
+  &::before {
+    content: '';
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(var(--accent-rgb), 0.12) 0%, transparent 70%);
+    top: -100px;
+    left: -100px;
+    pointer-events: none;
+  }
+  &::after {
+    content: '';
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(var(--accent-ai-rgb), 0.08) 0%, transparent 70%);
+    bottom: -50px;
+    right: -50px;
+    pointer-events: none;
+  }
+}
+
+.brand-content {
+  position: relative;
+  z-index: 1;
+  max-width: 360px;
+}
+
+.brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 36px;
+}
+
+// ✅ Updated .brand-name to match the color scheme
+.brand-name {
+  font-family: 'DM Mono', 'Fira Code', monospace;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  background: linear-gradient(178deg, var(--text-primary) 0%, var(--text-muted) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+    position: relative;
+    top: 50px;
+    left: -30PX;
+}
+
+// ✅ Updated .brand-title to use CSS variables consistently
+.brand-title {
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent) 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin: 0 0 16px;
+}
+
+.brand-desc {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.65;
+  margin: 0 0 36px;
+}
+
+.brand-stats {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 32px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--border-sidebar);
+}
+
+.bstat {
+  display: flex;
+  flex-direction: column;
+}
+
+.bstat-val {
+  font-family: 'DM Mono', monospace;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.bstat-lbl {
+  font-size: 11px;
+  color: var(--text-faint);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.brand-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bbadge {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+// ── Main (login form zone) ────────────────────────────────────────────────────
+
+.auth-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  background: var(--bg-page);
+  position: relative;
+  z-index: 1;
+}
