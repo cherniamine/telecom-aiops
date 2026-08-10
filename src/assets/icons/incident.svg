@@ -1,6 +1,0 @@
-<!-- ── incident.svg ───────────────────────────────────────────────────────── -->
-<!-- Incidents page icon -->
-<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-  <circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.4"/>
-  <path d="M10 6v5M10 13v.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-</svg>
