@@ -1,0 +1,527 @@
+{
+    "generated_at": "2026-05-08T14:07:32.576534",
+    "severity": {
+        "label": "CRITICAL",
+        "score": 14,
+        "explanation": {
+            "severity": "CRITICAL",
+            "reasons": [
+                "Moderate anomaly volume detected",
+                "Cross-platform propagation detected",
+                "Strong causal dependencies between metrics",
+                "Topology partially confirms telecom cascade",
+                "Probable root platform identified: MMG",
+                "Critical keyword detected: fail",
+                "Critical keyword detected: timeout",
+                "Critical keyword detected: queue full",
+                "Critical keyword detected: refused",
+                "Critical keyword detected: disconnect"
+            ]
+        },
+        "recommendations": [
+            "Investigate failing telecom components",
+            "Check SMPP session timeout configuration",
+            "Increase SMSC queue capacity",
+            "Analyze retry storm amplification",
+            "Inspect unstable network connections",
+            "Check authentication or routing rejection"
+        ]
+    },
+    "total_logs": 7224549,
+    "total_anomalies": 47278,
+    "clusters": 94,
+    "causal_links": 8,
+    "timeline": {
+        "timeline": [
+            "MMG",
+            "SMSC",
+            "DMC"
+        ],
+        "summary": "Incident cascade detected: MMG -> SMSC -> DMC. Likely trigger: fail. Causal relations discovered: 8. Topology validation partially confirms the cascade. Probable root platform: MMG.",
+        "topology_aware": true,
+        "cascade_validation": {
+            "cascade": [
+                "SMSC",
+                "SMPPS",
+                "SMPPC",
+                "DMC",
+                "MMG"
+            ],
+            "coherence_score": 0.5,
+            "valid_steps": 2,
+            "invalid_steps": 2,
+            "steps": [
+                {
+                    "step": "SMSC->SMPPS",
+                    "valid": true,
+                    "reason": "confirmed dependency"
+                },
+                {
+                    "step": "SMPPS->SMPPC",
+                    "valid": false,
+                    "reason": "unknown dependency"
+                },
+                {
+                    "step": "SMPPC->DMC",
+                    "valid": true,
+                    "reason": "confirmed dependency"
+                },
+                {
+                    "step": "DMC->MMG",
+                    "valid": false,
+                    "reason": "unknown dependency"
+                }
+            ],
+            "verdict": "PARTIAL_CASCADE"
+        },
+        "weighted_causal_links": [],
+        "root_platform_analysis": {
+            "root_platform": "MMG",
+            "confidence": "HIGH",
+            "candidates": [
+                {
+                    "platform": "MMG",
+                    "criticality": "HIGH",
+                    "dependency_count": 0,
+                    "known_failures": [
+                        "fail",
+                        "timeout",
+                        "connection refused"
+                    ],
+                    "recovery_minutes": 15
+                },
+                {
+                    "platform": "SMSC",
+                    "criticality": "CRITICAL",
+                    "dependency_count": 1,
+                    "known_failures": [
+                        "queue full",
+                        "timeout",
+                        "disconnect"
+                    ],
+                    "recovery_minutes": 30
+                },
+                {
+                    "platform": "SMPPC",
+                    "criticality": "MEDIUM",
+                    "dependency_count": 1,
+                    "known_failures": [
+                        "connection failed",
+                        "retry"
+                    ],
+                    "recovery_minutes": 10
+                },
+                {
+                    "platform": "SMPPS",
+                    "criticality": "HIGH",
+                    "dependency_count": 2,
+                    "known_failures": [
+                        "retry",
+                        "session timeout",
+                        "bind failed"
+                    ],
+                    "recovery_minutes": 20
+                },
+                {
+                    "platform": "DMC",
+                    "criticality": "MEDIUM",
+                    "dependency_count": 2,
+                    "known_failures": [
+                        "drop",
+                        "error",
+                        "refused"
+                    ],
+                    "recovery_minutes": 25
+                }
+            ]
+        }
+    },
+    "impact": {
+        "affected_platforms": [
+            "MMG",
+            "SMSC",
+            "DMC"
+        ],
+        "severity": "CRITICAL",
+        "sms_delivery_degradation": "MEDIUM",
+        "propagation_risk": "MEDIUM"
+    },
+    "incident_intelligence": {
+        "summary": "Incident cascade detected: MMG -> SMSC -> DMC. Likely trigger: fail. Causal relations discovered: 8. Topology validation partially confirms the cascade. Probable root platform: MMG.",
+        "timeline": [
+            "MMG",
+            "SMSC",
+            "DMC"
+        ],
+        "topology_aware": true,
+        "cascade_validation": {
+            "cascade": [
+                "SMSC",
+                "SMPPS",
+                "SMPPC",
+                "DMC",
+                "MMG"
+            ],
+            "coherence_score": 0.5,
+            "valid_steps": 2,
+            "invalid_steps": 2,
+            "steps": [
+                {
+                    "step": "SMSC->SMPPS",
+                    "valid": true,
+                    "reason": "confirmed dependency"
+                },
+                {
+                    "step": "SMPPS->SMPPC",
+                    "valid": false,
+                    "reason": "unknown dependency"
+                },
+                {
+                    "step": "SMPPC->DMC",
+                    "valid": true,
+                    "reason": "confirmed dependency"
+                },
+                {
+                    "step": "DMC->MMG",
+                    "valid": false,
+                    "reason": "unknown dependency"
+                }
+            ],
+            "verdict": "PARTIAL_CASCADE"
+        },
+        "weighted_causal_links": [],
+        "root_platform_analysis": {
+            "root_platform": "MMG",
+            "confidence": "HIGH",
+            "candidates": [
+                {
+                    "platform": "MMG",
+                    "criticality": "HIGH",
+                    "dependency_count": 0,
+                    "known_failures": [
+                        "fail",
+                        "timeout",
+                        "connection refused"
+                    ],
+                    "recovery_minutes": 15
+                },
+                {
+                    "platform": "SMSC",
+                    "criticality": "CRITICAL",
+                    "dependency_count": 1,
+                    "known_failures": [
+                        "queue full",
+                        "timeout",
+                        "disconnect"
+                    ],
+                    "recovery_minutes": 30
+                },
+                {
+                    "platform": "SMPPC",
+                    "criticality": "MEDIUM",
+                    "dependency_count": 1,
+                    "known_failures": [
+                        "connection failed",
+                        "retry"
+                    ],
+                    "recovery_minutes": 10
+                },
+                {
+                    "platform": "SMPPS",
+                    "criticality": "HIGH",
+                    "dependency_count": 2,
+                    "known_failures": [
+                        "retry",
+                        "session timeout",
+                        "bind failed"
+                    ],
+                    "recovery_minutes": 20
+                },
+                {
+                    "platform": "DMC",
+                    "criticality": "MEDIUM",
+                    "dependency_count": 2,
+                    "known_failures": [
+                        "drop",
+                        "error",
+                        "refused"
+                    ],
+                    "recovery_minutes": 25
+                }
+            ]
+        },
+        "severity_label": "CRITICAL",
+        "severity_score": 14,
+        "severity_reasons": [
+            "Moderate anomaly volume detected",
+            "Cross-platform propagation detected",
+            "Strong causal dependencies between metrics",
+            "Topology partially confirms telecom cascade",
+            "Probable root platform identified: MMG",
+            "Critical keyword detected: fail",
+            "Critical keyword detected: timeout",
+            "Critical keyword detected: queue full",
+            "Critical keyword detected: refused",
+            "Critical keyword detected: disconnect"
+        ],
+        "recommended_actions": [
+            "Investigate failing telecom components",
+            "Check SMPP session timeout configuration",
+            "Increase SMSC queue capacity",
+            "Analyze retry storm amplification",
+            "Inspect unstable network connections",
+            "Check authentication or routing rejection"
+        ],
+        "affected_platforms": [
+            "MMG",
+            "SMSC",
+            "DMC"
+        ],
+        "sms_delivery_degradation": "MEDIUM",
+        "propagation_risk": "MEDIUM",
+        "cluster_count": 94,
+        "causal_relation_count": 8,
+        "top_root_causes": [
+            [
+                "fail",
+                4144586.0
+            ],
+            [
+                "timeout",
+                282224.5
+            ],
+            [
+                "retry",
+                212031.0
+            ],
+            [
+                "error",
+                206202.0
+            ],
+            [
+                "refused",
+                64324.0
+            ],
+            [
+                "queue full",
+                52470.0
+            ],
+            [
+                "disconnect",
+                795.0
+            ],
+            [
+                "drop",
+                21.0
+            ],
+            [
+                "connection failed",
+                2.0
+            ]
+        ]
+    },
+    "root_cause": {
+        "root_causes": [
+            [
+                "fail",
+                4144586.0
+            ],
+            [
+                "timeout",
+                282224.5
+            ],
+            [
+                "retry",
+                212031.0
+            ],
+            [
+                "error",
+                206202.0
+            ],
+            [
+                "refused",
+                64324.0
+            ],
+            [
+                "queue full",
+                52470.0
+            ],
+            [
+                "disconnect",
+                795.0
+            ],
+            [
+                "drop",
+                21.0
+            ],
+            [
+                "connection failed",
+                2.0
+            ]
+        ],
+        "raw_root_causes": [
+            [
+                "fail",
+                2925539
+            ],
+            [
+                "retry",
+                212017
+            ],
+            [
+                "error",
+                204353
+            ],
+            [
+                "timeout",
+                188160
+            ],
+            [
+                "refused",
+                64324
+            ],
+            [
+                "queue full",
+                34980
+            ],
+            [
+                "disconnect",
+                563
+            ],
+            [
+                "drop",
+                14
+            ],
+            [
+                "connection failed",
+                2
+            ]
+        ],
+        "count": 4962655.5,
+        "affected_platforms": [
+            "SMSC",
+            "SMPPS",
+            "SMPPC",
+            "DMC",
+            "MMG"
+        ],
+        "platform_counts": [
+            [
+                "SMSC",
+                3427683
+            ],
+            [
+                "MMG",
+                2665282
+            ],
+            [
+                "DMC",
+                1036243
+            ],
+            [
+                "SMPPS",
+                63800
+            ],
+            [
+                "SMPPC",
+                31541
+            ]
+        ],
+        "root_platform_analysis": {
+            "root_platform": "MMG",
+            "confidence": "HIGH",
+            "candidates": [
+                {
+                    "platform": "MMG",
+                    "criticality": "HIGH",
+                    "dependency_count": 0,
+                    "known_failures": [
+                        "fail",
+                        "timeout",
+                        "connection refused"
+                    ],
+                    "recovery_minutes": 15
+                },
+                {
+                    "platform": "SMSC",
+                    "criticality": "CRITICAL",
+                    "dependency_count": 1,
+                    "known_failures": [
+                        "queue full",
+                        "timeout",
+                        "disconnect"
+                    ],
+                    "recovery_minutes": 30
+                },
+                {
+                    "platform": "SMPPC",
+                    "criticality": "MEDIUM",
+                    "dependency_count": 1,
+                    "known_failures": [
+                        "connection failed",
+                        "retry"
+                    ],
+                    "recovery_minutes": 10
+                },
+                {
+                    "platform": "SMPPS",
+                    "criticality": "HIGH",
+                    "dependency_count": 2,
+                    "known_failures": [
+                        "retry",
+                        "session timeout",
+                        "bind failed"
+                    ],
+                    "recovery_minutes": 20
+                },
+                {
+                    "platform": "DMC",
+                    "criticality": "MEDIUM",
+                    "dependency_count": 2,
+                    "known_failures": [
+                        "drop",
+                        "error",
+                        "refused"
+                    ],
+                    "recovery_minutes": 25
+                }
+            ]
+        },
+        "cascade_validation": {
+            "cascade": [
+                "SMSC",
+                "SMPPS",
+                "SMPPC",
+                "DMC",
+                "MMG"
+            ],
+            "coherence_score": 0.5,
+            "valid_steps": 2,
+            "invalid_steps": 2,
+            "steps": [
+                {
+                    "step": "SMSC->SMPPS",
+                    "valid": true,
+                    "reason": "confirmed dependency"
+                },
+                {
+                    "step": "SMPPS->SMPPC",
+                    "valid": false,
+                    "reason": "unknown dependency"
+                },
+                {
+                    "step": "SMPPC->DMC",
+                    "valid": true,
+                    "reason": "confirmed dependency"
+                },
+                {
+                    "step": "DMC->MMG",
+                    "valid": false,
+                    "reason": "unknown dependency"
+                }
+            ],
+            "verdict": "PARTIAL_CASCADE"
+        },
+        "weighted_causal_links": []
+    }
+}
