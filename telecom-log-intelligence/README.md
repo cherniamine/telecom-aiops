@@ -1,299 +1,210 @@
-# Telecom Log Intelligence
+# 📡 Telecom AIOps — Supervision intelligente et proactive des infrastructures télécoms
 
-**Supervision Intelligente et Proactive des Logs Applicatifs par Analyse Avancée et Détection d'Anomalies**
+[![Python](https://img.shields.io/badge/python-3.14-blue)](https://www.python.org)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248?logo=mongodb)](https://www.mongodb.com)
+[![FastAPI](https://img.shields.io/badge/FastAPI-REST%20API-009688?logo=fastapi)](https://fastapi.tiangolo.com)
+[![Angular](https://img.shields.io/badge/Angular-20-DD0031?logo=angular)](https://angular.dev)
+[![Scikit-learn](https://img.shields.io/badge/scikit--learn-ML-F7931E?logo=scikitlearn&logoColor=white)](https://scikit-learn.org)
 
-## 📋 Description du Projet
+> Projet de Fin d'Études réalisé en collaboration avec **Tunisie Télécom** et **SICAP** : transformer des volumes massifs de logs applicatifs télécoms (**7,2M+ logs**) en un levier décisionnel intelligent, avec détection d'anomalies, analyse des causes racines (RCA), prédiction d'impact et un dashboard multi-rôles (NOC / Ingénieur / Manager).
 
-Dans le cadre de mon Projet de Fin d'Études (PFE) en collaboration avec **Tunisie Télécom** et **SICAP**, ce projet vise à transformer les logs applicatifs massifs en un levier décisionnel intelligent pour la supervision proactive des infrastructures télécoms.
+Ce dépôt regroupe les **deux composants** de la plateforme :
 
-Face à la digitalisation croissante des systèmes d'information, les applications génèrent quotidiennement des volumes massifs de logs techniques. La supervision traditionnelle, basée sur des dashboards descriptifs et une approche réactive, montre ses limites face à la complexité croissante des systèmes et l'augmentation continue des volumes de données.
+| Composant | Rôle | README détaillé |
+|---|---|---|
+| 🧠 [`telecom-log-intelligence`](telecom-log-intelligence) | Backend Python — ingestion, ML, détection d'anomalies, RCA, API REST | [Voir le README](telecom-log-intelligence/README.md) |
+| 🖥️ [`telecom-ai-dashboard`](telecom-ai-dashboard) | Frontend Angular — dashboard multi-rôles, visualisations temps réel | [Voir le README](telecom-ai-dashboard/README.md) |
 
-**Telecom Log Intelligence** propose une solution innovante de supervision intelligente qui :
-- Exploite des volumes importants de logs applicatifs (7.2M+ logs)
-- Détecte proactivement les anomalies en temps réel
-- Identifie automatiquement les causes racines des incidents
-- Prédit l'impact et la durée des incidents
-- Recommande des actions de remédiation
-- Réduit les incidents avant qu'ils n'impactent les utilisateurs finaux
+---
 
-## 🏗️ Architecture du Système
-┌─────────────────────────────────────────────────────────────────┐
-│ TELECOM LOG INTELLIGENCE │
-├─────────────────────────────────────────────────────────────────┤
-│ │
-│ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ │
-│ │ Ingestion │────▶│ Batch │────▶│ AI │ │
-│ │ des Logs │ │ Pipeline │ │ Orchestrator │ │
-│ └──────────────┘ └──────────────┘ └──────────────┘ │
-│ │ │ │ │
-│ ▼ ▼ ▼ │
-│ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ │
-│ │ Realtime │ │ MongoDB │ │ Engines │ │
-│ │ Simulator │────▶│ Intelligence│◀───│ (RCA, AI) │ │
-│ └──────────────┘ └──────────────┘ └──────────────┘ │
-│ │ │ │
-│ ▼ ▼ │
-│ ┌──────────────┐ ┌──────────────┐ │
-│ │ Dashboard │ │ Alerts │ │
-│ │ (REST API) │ │ (Email) │ │
-│ └──────────────┘ └──────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
+## 📋 Sommaire
 
-text
+- [Contexte](#-contexte)
+- [Architecture globale](#-architecture-globale)
+- [Résultats clés](#-résultats-clés)
+- [Backend — Telecom Log Intelligence](#-backend--telecom-log-intelligence)
+- [Frontend — Telecom AI Dashboard](#-frontend--telecom-ai-dashboard)
+- [Démarrage rapide](#-démarrage-rapide)
+- [Auteur](#-auteur)
 
-## 🚀 Fonctionnalités Principales
+---
 
-### 1. **Détection d'Anomalies**
-- Détection d'anomalies basée sur l'embedding de logs (sentence-transformers)
-- Isolation Forest pour la détection de points aberrants
-- Identification de 71,393 anomalies sur 7.2M logs
+## 🎯 Contexte
 
-### 2. **Root Cause Analysis (RCA)**
-- Inférence causale automatique
-- Détection des cascades d'incidents multi-plateformes
-- Identification des causes racines (fail, retry, error, timeout...)
+Les applications télécoms génèrent quotidiennement des volumes massifs de logs techniques. La supervision traditionnelle — dashboards descriptifs, approche réactive — montre ses limites face à la complexité croissante des systèmes.
 
-### 3. **Prédiction d'Impact et de Durée**
-- Estimation de l'impact client (HIGH/MEDIUM/LOW)
-- Prédiction du temps de résolution (8-90 minutes)
-- Évaluation du risque de propagation
+**Telecom AIOps** propose une supervision proactive qui :
+- exploite de grands volumes de logs applicatifs (7,2M+ logs) ;
+- détecte les anomalies en temps réel (embeddings + Isolation Forest) ;
+- identifie automatiquement les causes racines et les cascades d'incidents multi-plateformes ;
+- prédit l'impact client et la durée de résolution ;
+- recommande des actions de remédiation ;
+- expose le tout via une API REST et un dashboard adapté à trois profils utilisateurs (NOC, Ingénieur, Manager).
 
-### 4. **Auto-Remédiation**
-- Recommandations d'actions automatiques
-- Ajustement dynamique des actions selon le contexte
+## 🏗️ Architecture globale
 
-### 5. **Supervision Temps Réel**
-- Simulation de flux de logs en temps réel
-- Traitement par batch de 20 logs
-- Alertes email automatiques (SMTP)
+```mermaid
+flowchart LR
+    subgraph Logs["📥 Sources"]
+        HIST["Logs historiques<br/>(7,2M+)"]
+        RT["Flux temps réel<br/>(simulateur)"]
+    end
 
-### 6. **Dashboard API REST**
-- Vue d'ensemble des incidents
-- Analyse des anomalies
-- Visualisation de la timeline
-- Heatmap par plateforme
-- Historique complet des incidents
+    subgraph Backend["🧠 telecom-log-intelligence (Python)"]
+        direction TB
+        ING["Ingestion & normalisation"]
+        PIPE["Pipeline batch / temps réel"]
+        ML["Moteurs IA<br/>Anomalies · RCA · Impact · Durée"]
+        DB[("MongoDB")]
+        API["API REST (FastAPI / Uvicorn)"]
+        ALERT["Alertes email (SMTP)"]
 
-## 🛠️ Stack Technique
+        ING --> PIPE --> ML
+        ML <--> DB
+        ML --> API
+        ML --> ALERT
+    end
 
-| Composant | Technologie |
-|-----------|------------|
-| **Langage** | Python 3.14 |
-| **IA/ML** | Sentence-Transformers, Isolation Forest, Scikit-learn |
-| **Base de Données** | MongoDB |
-| **API** | Flask (RESTful) |
-| **Traitement** | Pandas, NumPy |
-| **Email** | SMTP (Gmail) |
+    subgraph Frontend["🖥️ telecom-ai-dashboard (Angular)"]
+        direction TB
+        NOC["Vue NOC"]
+        ENG["Vue Ingénieur"]
+        MGR["Vue Manager"]
+        COPILOT["AI Copilot"]
+    end
 
-## 📊 Structure du Projet
-telecom-log-intelligence/
-├── ai/ # Moteurs IA
-│ ├── orchestrator/ # Orchestrateur principal
-│ ├── engine/ # Moteurs (RCA, anomalies, propagation)
-│ ├── decisioning/ # Estimation impact/durée
-│ ├── notification/ # Alertes email
-│ └── prediction/ # Prédictions (évolution, similarité)
-├── pipeline/ # Pipelines batch & temps réel
-├── realtime/ # Simulateur de flux temps réel
-├── ingestion/ # Parsing et normalisation des logs
-├── dashboard/ # API REST (Flask)
-├── database/ # Client MongoDB
-├── services/ # Services métier
-├── ml/ # Modèles ML
-│ ├── models/ # Modèles entraînés
-│ ├── training/ # Entraînement des modèles
-│ └── evaluation/ # Métriques d'évaluation
-├── data/ # Données (exclues du Git)
-├── notebooks/ # Jupyter notebooks d'analyse
-├── config/ # Configuration
-├── docker/ # Fichiers Docker
-├── docs/ # Documentation
-├── tests/ # Tests unitaires
-├── .env # Variables d'environnement
-├── .gitignore # Fichiers ignorés par Git
-├── main.py # Point d'entrée principal
-└── requirements.txt # Dépendances Python
+    HIST --> ING
+    RT --> ING
+    API -->|"REST"| NOC
+    API -->|"REST"| ENG
+    API -->|"REST"| MGR
+    API -->|"REST"| COPILOT
 
-text
+    classDef src fill:#4479A1,color:#fff,stroke:#2d566b
+    classDef back fill:#009688,color:#fff,stroke:#00695c
+    classDef front fill:#DD0031,color:#fff,stroke:#a80025
 
-## 📦 Installation
+    class HIST,RT src
+    class ING,PIPE,ML,DB,API,ALERT back
+    class NOC,ENG,MGR,COPILOT front
+```
 
-### Prérequis
-- Python 3.14+
-- MongoDB (local ou distant)
-- Git LFS (optionnel pour les modèles)
+## 📊 Résultats clés
 
-### Étapes d'installation
+| Métrique | Valeur |
+|---|---:|
+| Volume de logs traité | **7 224 549** |
+| Anomalies détectées | **47 278** (0,657 %) |
+| Clusters identifiés | 94 |
+| Liens causaux découverts | 8 |
+| Latence recherche FAISS (7,2M vecteurs) | < 10 ms |
+| Endpoints API REST | 59 |
+| Plateformes supervisées | MMG, SMSC, SMPPS, SMPPC, DMC |
 
-```bash
-# 1. Cloner le repository
-git clone https://github.com/cherniamine/telecom-log-intelligence.git
-cd telecom-log-intelligence
+**Exemple réel de synthèse produite par l'orchestrateur (pipeline temps réel)** :
 
-# 2. Créer l'environnement virtuel
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-.\venv\Scripts\activate   # Windows
-
-# 3. Installer les dépendances
-pip install -r requirements.txt
-
-# 4. Configurer les variables d'environnement
-# Créer et éditer le fichier .env avec vos configurations
-# Exemple de contenu .env:
-# MONGODB_URI=mongodb://localhost:27017/
-# EMAIL_SENDER=your_email@gmail.com
-# EMAIL_PASSWORD=your_app_password
-
-# 5. Lancer MongoDB (assurez-vous qu'il est démarré)
-mongod --dbpath /path/to/data
-
-# 6. Initialiser la base de données (optionnel)
-python -c "from database.mongodb_client import get_db; get_db()"
-🏃 Exécution
-1. Pipeline Batch (analyse historique)
-bash
-python -m pipeline.batch_pipeline
-Analyse 7.2M logs historiques
-
-Détection des anomalies, clustering, RCA
-
-Génération du rapport d'incident
-
-2. Orchestrateur AI (analyse complète)
-bash
-python -m ai.orchestrator.telecom_ai_orchestrator
-Impact estimation
-
-Duration prediction
-
-Auto-remediation
-
-Similar incident search
-
-3. Simulation Temps Réel
-bash
-# Terminal 1: Simulateur de flux
-python -m realtime.log_stream_simulator
-
-# Terminal 2: Pipeline temps réel
-python -m pipeline.realtime_pipeline
-4. Dashboard API
-bash
-python -m dashboard.dashboard_api
-Accès API: http://localhost:5000
-
-📡 Endpoints API
-Endpoint	Description
-GET /dashboard/overview	Vue d'ensemble du système
-GET /dashboard/anomalies	Liste des anomalies détectées
-GET /dashboard/rca	Analyse des causes racines
-GET /dashboard/timeline	Timeline des incidents
-GET /dashboard/heatmap	Distribution des anomalies par plateforme
-GET /dashboard/impact	Estimation d'impact
-GET /dashboard/duration	Prédiction de durée
-GET /dashboard/intelligence	Intelligence synthétique de l'incident
-GET /dashboard/evolution	Prédiction d'évolution
-GET /dashboard/remediation	Actions de remédiation
-GET /dashboard/similar-incidents	Incidents similaires
-GET /dashboard/alerts	Flux d'alertes
-GET /dashboard/incidents	Incidents actifs
-GET /dashboard/incidents/history	Historique des incidents
-GET /dashboard/predictions	Prédictions globales
-GET /dashboard/system-status	Statut du système
-GET /dashboard/email-alerts	Suivi des alertes email
-Exemple d'appel API
-bash
-curl -X GET http://localhost:5000/dashboard/overview
-📊 Résultats et Performances
-Métriques Clés
-Volume traité: 7,224,549 logs
-
-Anomalies détectées: 71,393 (~1%)
-
-Clusters identifiés: 78
-
-Liens causals découverts: 8
-
-Plateformes supervisées: MMG, SMSC, SMPPS, DMC
-
-Exemple de Résultat
-text
-═══════════════════════════════════════════════════════════
-INCIDENT DETECTED
-═══════════════════════════════════════════════════════════
+```
+ORCHESTRATION SUMMARY
+Detected anomalies: 20
+Clusters: 1
+Root causes: [('fail', 22.5)]
+Propagation path: ['DMC', 'MMG']
 Severity: CRITICAL
-Anomalies: 71,393
-Propagation: MMG → SMSC → SMPPS → DMC
-Root Causes: fail (2,925,539), retry (212,017), error (204,353)
-Impact: HIGH customer impact
-Predicted Resolution: 90 minutes
-Recommendations:
-  - Investigate failing telecom components
-  - Increase SMSC queue capacity
-  - Throttle retry storms
-═══════════════════════════════════════════════════════════
-🔧 Configuration
-Variables d'environnement (.env)
-bash
-# MongoDB
-MONGODB_URI=mongodb://localhost:27017/
-MONGODB_DATABASE=telecom_logs
+Alerts saved: 3
+Operator priority: IMMEDIATE ACTION
+Email alert: sent successfully
+```
 
-# Email (Gmail)
-EMAIL_SENDER=your_email@gmail.com
-EMAIL_PASSWORD=your_app_password
-EMAIL_RECIPIENTS=recipient1@gmail.com,recipient2@gmail.com
+**Exemple de schéma d'alerte intelligente (mode batch, 47 278 anomalies)** :
 
-# API
-API_HOST=0.0.0.0
-API_PORT=5000
-API_DEBUG=False
+```json
+{
+  "type": "REALTIME_ANOMALY",
+  "severity": "CRITICAL",
+  "alert_rank_score": 100,
+  "operator_priority": "IMMEDIATE ACTION",
+  "propagation_path": ["SMPPS", "MMG", "DMC", "SMPPC"],
+  "platforms_affected": 4,
+  "anomaly_count": 47278,
+  "immediate_actions": ["restart_smpp_pool", "escalate_noc"],
+  "created_at": "2026-01-15T03:42:20Z"
+}
+```
 
-# ML Models
-MODELS_PATH=ml/models/
-CACHE_PATH=data/cache/
-🧪 Tests
-bash
-# Exécuter tous les tests
-pytest tests/
+---
 
-# Exécuter un test spécifique
-pytest tests/test_anomaly_engine.py
+## 🧠 Backend — Telecom Log Intelligence
 
-# Avec couverture
-pytest --cov=. tests/
-📈 Perspectives d'Évolution
-Intégration continue avec CI/CD
+**Stack** : Python 3.14 · Sentence-Transformers (MiniLM-384) · Détection hybride (Isolation Forest + LOF + TF-IDF) · Scikit-learn · MongoDB · FAISS (IVFPQ + IDMap2) · FastAPI (Uvicorn) · Pandas/NumPy
 
-Tableau de bord Angular pour visualisation avancée
+**Fonctionnalités principales** :
+- **Détection hybride d'anomalies** (Isolation Forest + LOF + TF-IDF, via embeddings sémantiques MiniLM-384) avec seuils dynamiques
+- **Root Cause Analysis (RCA)** : inférence causale, détection de cascades d'incidents multi-plateformes
+- **Prédiction d'impact et de durée** de résolution
+- **Auto-remédiation** : recommandations d'actions contextuelles
+- **Supervision temps réel** : simulateur de flux + pipeline par batch
+- **API REST** : vue d'ensemble, anomalies, RCA, timeline, heatmap, prédictions, alertes...
 
-LLM Copilot pour l'explication des logs
+👉 Documentation complète, installation, liste des endpoints et variables d'environnement : **[telecom-log-intelligence/README.md](telecom-log-intelligence/README.md)**
 
-Digital Twin pour simulation de propagation
+## 🖥️ Frontend — Telecom AI Dashboard
 
-GNN (Graph Neural Networks) pour modélisation des dépendances télécoms
+**Stack** : Angular 20 · Angular Material · Chart.js · ECharts (`ngx-echarts`) · RxJS
 
-Détection en temps réel avec WebSockets
+**Fonctionnalités principales** :
+- **Trois vues par rôle** : NOC, Ingénieur, Manager — chacune adaptée à son usage métier
+- **RCA Panel** : exploration visuelle des causes racines
+- **Cascade Timeline** : visualisation de la propagation des incidents entre plateformes
+- **Anomaly Table** : liste et filtrage des anomalies détectées
+- **AI Copilot** : assistant d'aide à la décision
+- **What-if Simulator** : simulation de scénarios
+- **Drift Monitor** & **Feedback Loop** : suivi de la dérive des modèles et boucle de retour
+- **Similarity Search** : recherche d'incidents similaires
 
-API REST avec authentification JWT
+👉 Documentation complète et commandes Angular CLI : **[telecom-ai-dashboard/README.md](telecom-ai-dashboard/README.md)**
 
-🤝 Contribution
-Ce projet a été développé dans le cadre académique. Les contributions sont les bienvenues pour les améliorations futures.
+---
 
-👤 Auteur
-Mohamed Amine Cherni
-Projet de Fin d'Études - Master en Data Science & Intelligence Artificielle
+## ⚙️ Démarrage rapide
 
+### Backend
+```bash
+cd telecom-log-intelligence
+python -m venv venv
+source venv/bin/activate  # Windows : venv\Scripts\activate
+pip install -r requirements.txt
+cp .env.example .env      # puis renseigner MongoDB, SMTP, etc.
 
-📝 Licence
-Ce projet est développé dans le cadre académique du PFE. Tous droits réservés.
+python -m dashboard.dashboard_api
+# API disponible sur http://localhost:8000
+```
 
-Note: Les données (logs, embeddings, modèles) ne sont pas incluses dans le repository Git. Contactez l'auteur pour accéder aux données d'entraînement.
+### Frontend
+```bash
+cd telecom-ai-dashboard
+npm install
+ng serve
+# Application disponible sur http://localhost:4200
+```
 
-📞 Contact
-Pour toute question concernant ce projet, veuillez contacter :
+> Détails complets (pipeline batch, orchestrateur IA, simulateur temps réel, tests) dans le README du backend.
 
-Email: chernimohamedamine551@gmail.com
+> ⚠️ **Sécurité** : le code contient un secret JWT de repli codé en dur (`"telecom_pfe_secret_2026"`, utilisé si `JWT_SECRET` n'est pas défini). Définis systématiquement `JWT_SECRET` dans ton `.env` avec une valeur forte et aléatoire avant tout déploiement au-delà d'un usage local.
 
-GitHub: @cherniamine
+---
+
+## 👤 Auteur
+
+**Cherni Mohamed Amine**
+Projet de Fin d'Études (Génie Informatique) — soutenu le 30/06/2026, réalisé en collaboration avec Tunisie Télécom et SICAP
+Encadrante académique : Mme Sana Hamdi · Encadrant professionnel : M. Badreddine Babay
+
+- 🔗 [LinkedIn](https://www.linkedin.com/in/cherni-mohamed-amine-40158b2b1/)
+- 💻 [GitHub](https://github.com/cherniamine)
+- 📧 chernimohamedamine551@gmail.com
+
+---
+
+## 📄 Licence
+
+Projet développé dans le cadre académique du PFE. Tous droits réservés — contacter l'auteur pour toute réutilisation.
