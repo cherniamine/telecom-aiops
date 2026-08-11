@@ -1,0 +1,7 @@
+<!-- ── copilot.svg ────────────────────────────────────────────────────────── -->
+<!-- AI Copilot icon -->
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+  <path d="M10 2C6.13 2 3 5.13 3 9s3.13 7 7 7c.9 0 1.76-.17 2.55-.47L16 17l-1.03-3.55A6.97 6.97 0 0017 9c0-3.87-3.13-7-7-7z"
+        stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+  <path d="M7 9h6M7 12h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+</svg>

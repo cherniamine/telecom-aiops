@@ -1,0 +1,8 @@
+<!-- ── drift.svg ──────────────────────────────────────────────────────────── -->
+<!-- Model drift monitor icon -->
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+  <path d="M2 10c2.5-5 5-5 7.5 0s5 5 7.5 0" stroke="currentColor" stroke-width="1.4"
+        stroke-linecap="round"/>
+  <path d="M2 14c2.5-2.5 5-2.5 7.5 0s5 2.5 7.5 0" stroke="currentColor" stroke-width="1.4"
+        stroke-linecap="round" opacity="0.4"/>
+</svg>

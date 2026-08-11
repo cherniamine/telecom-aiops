@@ -1,0 +1,33 @@
+:host {
+  display: inline-flex;
+  line-height: 0;
+}
+
+.app-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  color: currentColor;
+}
+
+.app-icon svg {
+  width: 100%;
+  height: 100%;
+  stroke: currentColor;
+  stroke-width: var(--icon-stroke, 1.8);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+:host(.spinning) .app-icon svg,
+.app-icon.spinning svg {
+  animation: app-icon-spin 0.9s linear infinite;
+}
+
+@keyframes app-icon-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
