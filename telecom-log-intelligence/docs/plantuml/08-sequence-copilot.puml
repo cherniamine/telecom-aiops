@@ -1,0 +1,33 @@
+@startuml
+actor Utilisateur
+participant "CopilotChatComponent" as UI
+participant "CopilotService" as CopTS
+participant "FastAPI\n/dashboard/copilot/ask" as API
+participant "DashboardService" as Dash
+participant "TelecomAICopilot" as Copilot
+participant "IncidentExplainer" as Explainer
+cloud "Ollama / Mistral" as Ollama
+
+Utilisateur -> UI : poser une question
+UI -> CopTS : ask(question, incidentId)
+CopTS -> API : POST /dashboard/copilot/ask
+API -> Dash : get_incident_context(incidentId)
+Dash --> API : incident_data
+API -> Copilot : ask(question, incident_data)
+Copilot -> Explainer : build_context() + generate_text(prompt)
+Explainer -> Ollama : generate(prompt)
+
+alt reponse LLM valide
+  Ollama --> Explainer : JSON answer
+  Explainer --> Copilot : answer
+  Copilot --> API : source=ollama
+else timeout / erreur / reponse generique
+  Explainer --> Copilot : exception / empty
+  Copilot -> Copilot : heuristic fallback
+  Copilot --> API : source=heuristic
+end
+
+API --> CopTS : answer + used_fallback + model
+CopTS --> UI : afficher reponse
+@enduml
+

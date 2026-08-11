@@ -1,0 +1,25 @@
+@startuml
+actor Engineer
+participant "WhatIfPanelComponent" as UI
+participant "WhatIfService" as WTS
+participant "FastAPI\n/dashboard/what-if/compare" as API
+participant "WhatIfEngine" as WhatIf
+database "MongoDB" as Mongo
+participant "TelecomDigitalTwinEngine" as Twin
+
+Engineer -> UI : comparer des actions correctives
+UI -> WTS : compare(incidentId, actionIds)
+WTS -> API : POST /dashboard/what-if/compare
+API -> WhatIf : compare_actions(incident_data, action_ids)
+WhatIf -> Mongo : get incident by id
+WhatIf -> Twin : simulate_failure / topology impact
+
+loop pour chaque action candidate
+  WhatIf -> WhatIf : compute_action_impact()
+  WhatIf -> WhatIf : estimer MTTR,\nconfiance et risques
+end
+
+WhatIf --> API : best_action + comparison_table
+API --> WTS : JSON response
+WTS --> UI : afficher meilleure action
+@enduml

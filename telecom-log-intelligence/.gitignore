@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+
+# IDEs
+.vscode/
+.idea/
+
+# Environment files
+.env
+.env.local
+
+# Generated data and artifacts
+data/raw_logs/
+data/processed/
+data/cache/
+ml/models/
+monitoring/*.db
+monitoring/*.json
+monitoring/*.log
+
+# Logs and reports that are regenerated
+*.log
+*.pkl
+*.memmap
+*.parquet

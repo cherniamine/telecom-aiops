@@ -1,0 +1,93 @@
+platforms:
+  MMG:
+    description: "Mobile Messaging Gateway - entry point for SMS"
+    criticality: HIGH
+    depends_on: []
+    impacts:
+      - SMSC
+      - SMPPS
+    known_failure_modes:
+      - "fail"
+      - "timeout"
+      - "connection refused"
+    recovery_time_minutes: 15
+
+  SMSC:
+    description: "Short Message Service Center - SMS routing core"
+    criticality: CRITICAL
+    depends_on:
+      - MMG
+    impacts:
+      - SMPPS
+      - SMS_ROUTER
+    known_failure_modes:
+      - "queue full"
+      - "timeout"
+      - "disconnect"
+    recovery_time_minutes: 30
+
+  SMPPS:
+    description: "SMPP Server - SMS delivery protocol server"
+    criticality: HIGH
+    depends_on:
+      - SMSC
+      - MMG
+    impacts:
+      - DMC
+    known_failure_modes:
+      - "retry"
+      - "session timeout"
+      - "bind failed"
+    recovery_time_minutes: 20
+
+  SMPPC:
+    description: "SMPP Client - outbound partner connectivity"
+    criticality: MEDIUM
+    depends_on:
+      - SMSC
+    impacts:
+      - DMC
+    known_failure_modes:
+      - "connection failed"
+      - "retry"
+    recovery_time_minutes: 10
+
+  DMC:
+    description: "Digital Messaging Core - final processing and delivery"
+    criticality: MEDIUM
+    depends_on:
+      - SMPPS
+      - SMPPC
+    impacts: []
+    known_failure_modes:
+      - "drop"
+      - "error"
+      - "refused"
+    recovery_time_minutes: 25
+
+  SMS_ROUTER:
+    description: "Internal SMS router"
+    criticality: LOW
+    depends_on:
+      - SMSC
+    impacts: []
+    known_failure_modes:
+      - "route not found"
+      - "timeout"
+    recovery_time_minutes: 10
+
+rca_weights:
+  confidence_boost: 1.5
+  confidence_penalty: 0.2
+  unknown_platform: 0.8
+
+alert_thresholds:
+  CRITICAL:
+    min_anomaly_count: 1000
+    platforms: ["SMSC"]
+  HIGH:
+    min_anomaly_count: 500
+    platforms: ["MMG", "SMPPS"]
+  MEDIUM:
+    min_anomaly_count: 100
+    platforms: ["DMC", "SMPPC", "SMS_ROUTER"]

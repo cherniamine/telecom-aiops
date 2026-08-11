@@ -1,0 +1,26 @@
+@startuml
+actor Engineer
+participant "SimilaritySearchComponent" as UI
+participant "FaissService (Angular)" as FaissTS
+participant "FastAPI\n/dashboard/similar-logs/search" as API
+participant "DashboardService" as Dash
+participant "EmbeddingEngine" as Embed
+participant "FaissSimilarityEngine" as Faiss
+database "FAISS Index" as Index
+database "MongoDB / Parquet" as Data
+
+Engineer -> UI : saisir requete texte
+UI -> FaissTS : searchByText(query, k, platform)
+FaissTS -> API : POST /dashboard/similar-logs/search
+API -> Dash : search_similar_logs_by_text(...)
+Dash -> Embed : embed_batch([query])
+Embed --> Dash : query_vector
+Dash -> Faiss : search_by_text(query_vector, k)
+Faiss -> Index : utiliser index charge
+Faiss -> Data : recuperer metadata des logs
+Faiss --> Dash : similar logs
+Dash --> API : results + similarity_score
+API --> FaissTS : JSON response
+FaissTS --> UI : afficher resultats
+@enduml
+

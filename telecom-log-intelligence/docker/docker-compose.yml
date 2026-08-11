@@ -1,0 +1,37 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: telecom_mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: telecom_logs
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  telecom_pipeline:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: telecom_pipeline
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017
+      - DATABASE_NAME=telecom_logs
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ../data:/app/data
+    command: python analysis/feature_engineering.py
+
+volumes:
+  mongodb_data:

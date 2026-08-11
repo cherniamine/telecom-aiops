@@ -1,0 +1,27 @@
+@startuml
+actor Utilisateur
+participant "LoginComponent" as Login
+participant "AuthService" as Auth
+participant "FastAPI /auth/login" as API
+participant "multi_role_dashboard.py" as RoleAPI
+database "localStorage" as Storage
+
+Utilisateur -> Login : saisir username/password
+Login -> Auth : login(username, password)
+Auth -> API : POST /auth/login
+API -> RoleAPI : login(request)
+
+alt identifiants valides
+  RoleAPI -> RoleAPI : verifier DEMO_USERS\ncreer JWT HS256
+  RoleAPI --> API : access_token + role + expires_in
+  API --> Auth : 200 OK
+  Auth -> Storage : save telecom_user
+  Auth --> Login : currentUser(role, token)
+  Login -> Login : redirection selon role
+else identifiants invalides
+  RoleAPI --> API : 401 Unauthorized
+  API --> Auth : erreur
+  Auth --> Login : afficher message d'erreur
+end
+@enduml
+

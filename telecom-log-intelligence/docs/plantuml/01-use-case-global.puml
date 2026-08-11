@@ -1,0 +1,52 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+actor "NOC Analyst" as NOC
+actor "Engineer" as ENG
+actor "Manager" as MGR
+
+rectangle "Telecom AI Dashboard" {
+  usecase "S'authentifier" as UC_Login
+  usecase "Consulter la vue\nd'ensemble" as UC_Overview
+  usecase "Surveiller les alertes\ncritiques" as UC_Alerts
+  usecase "Consulter la file\nNOC" as UC_Queue
+  usecase "Suivre l'etat\ntemps reel" as UC_Realtime
+  usecase "Consulter les metriques ML" as UC_ML
+  usecase "Consulter les logs bruts" as UC_RawLogs
+  usecase "Analyser les incidents\net la RCA" as UC_RCA
+  usecase "Rechercher des logs/\nincidents similaires" as UC_Similarity
+  usecase "Dialoguer avec le\nCopilot IA" as UC_Copilot
+  usecase "Simuler des actions\ncorrectives What-If" as UC_WhatIf
+  usecase "Consulter KPI,\ntendances et SLA" as UC_Manager
+  usecase "Soumettre un feedback\nsur une anomalie" as UC_Feedback
+}
+
+NOC --> UC_Login
+NOC --> UC_Overview
+NOC --> UC_Alerts
+NOC --> UC_Queue
+NOC --> UC_Realtime
+NOC --> UC_Copilot
+NOC --> UC_Feedback
+
+ENG --> UC_Login
+ENG --> UC_Overview
+ENG --> UC_Alerts
+ENG --> UC_Realtime
+ENG --> UC_ML
+ENG --> UC_RawLogs
+ENG --> UC_RCA
+ENG --> UC_Similarity
+ENG --> UC_Copilot
+ENG --> UC_WhatIf
+ENG --> UC_Feedback
+
+MGR --> UC_Login
+MGR --> UC_Overview
+MGR --> UC_RCA
+MGR --> UC_Similarity
+MGR --> UC_Copilot
+MGR --> UC_Manager
+@enduml
+

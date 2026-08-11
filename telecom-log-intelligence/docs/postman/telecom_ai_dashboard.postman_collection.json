@@ -1,0 +1,942 @@
+{
+  "info": {
+    "_postman_id": "0ab81f2f-5bfe-47cb-b4dd-e6d53a55c7a1",
+    "name": "Telecom AI Dashboard",
+    "description": "Postman collection for Telecom AI Dashboard API, AI Copilot, What-If simulation, multi-role access, feedback, FAISS and MLOps endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "jwt",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "00 - Public",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Dashboard Overview",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/overview",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "overview"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Incident Intelligence",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/intelligence",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "intelligence"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Incident History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/incidents/history",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "incidents",
+                "history"
+              ]
+            }
+          }
+        },
+        {
+          "name": "System Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/system-status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "system-status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Threshold Explain",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/thresholds/{{platform}}?hour=14&weekday=0&log_volume=15000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "thresholds",
+                "{{platform}}"
+              ],
+              "query": [
+                {
+                  "key": "hour",
+                  "value": "14"
+                },
+                {
+                  "key": "weekday",
+                  "value": "0"
+                },
+                {
+                  "key": "log_volume",
+                  "value": "15000"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 - Auth",
+      "item": [
+        {
+          "name": "Login NOC",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.access_token) {",
+                  "    pm.collectionVariables.set('jwt', json.access_token);",
+                  "    if (pm.environment) pm.environment.set('jwt', json.access_token);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{nocUsername}}\",\n  \"password\": \"{{nocPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login Manager",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.access_token) {",
+                  "    pm.collectionVariables.set('jwt', json.access_token);",
+                  "    if (pm.environment) pm.environment.set('jwt', json.access_token);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{managerUsername}}\",\n  \"password\": \"{{managerPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login Engineer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.access_token) {",
+                  "    pm.collectionVariables.set('jwt', json.access_token);",
+                  "    if (pm.environment) pm.environment.set('jwt', json.access_token);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{engineerUsername}}\",\n  \"password\": \"{{engineerPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Multi Role",
+      "item": [
+        {
+          "name": "Dashboard Me",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "NOC Alerts",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/noc/alerts?limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "noc",
+                "alerts"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "NOC Queue",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/noc/queue?limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "noc",
+                "queue"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Manager KPIs",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/manager/kpis",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "manager",
+                "kpis"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Engineer ML Metrics",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/engineer/ml-metrics",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "engineer",
+                "ml-metrics"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Engineer Incident Details",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/engineer/details/{{incidentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "engineer",
+                "details",
+                "{{incidentId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - AI Copilot",
+      "item": [
+        {
+          "name": "Open Copilot Panel",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/copilot/panel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "copilot",
+                "panel"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Explain Incident",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"incident_id\": \"{{incidentId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/explain",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "explain"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Copilot Ask",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"incident_id\": \"{{incidentId}}\",\n  \"question\": \"{{question}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/copilot/ask",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "copilot",
+                "ask"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - What If",
+      "item": [
+        {
+          "name": "What If Overview",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/what-if",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "what-if"
+              ]
+            }
+          }
+        },
+        {
+          "name": "What If Actions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/what-if/actions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "what-if",
+                "actions"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Best Action Latest",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/what-if/best-action/latest",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "what-if",
+                "best-action",
+                "latest"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Best Action By Incident",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/what-if/best-action/{{incidentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "what-if",
+                "best-action",
+                "{{incidentId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Compare Actions",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"incident_id\": \"{{incidentId}}\",\n  \"action_ids\": [\n    \"increase_smsc_queue\",\n    \"restart_smpp_sessions\",\n    \"combined_recovery\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/what-if/compare",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "what-if",
+                "compare"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Simulate One Action",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"incident_id\": \"{{incidentId}}\",\n  \"action_id\": \"{{whatIfActionId}}\",\n  \"parameters\": {\n    \"capacity_boost_pct\": 50\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/what-if/simulate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "what-if",
+                "simulate"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Feedback",
+      "item": [
+        {
+          "name": "Feedback Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/feedback/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "feedback",
+                "stats"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Pending Validation Queue",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/feedback/pending?limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "feedback",
+                "pending"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Submit False Positive",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"false_positive\",\n  \"operator_id\": \"{{operatorId}}\",\n  \"comment\": \"Postman test - normal nightly SMSC behavior\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/feedback/anomaly/{{anomalyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "feedback",
+                "anomaly",
+                "{{anomalyId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Operator History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/feedback/history/{{operatorId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "feedback",
+                "history",
+                "{{operatorId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Similarity and MLOps",
+      "item": [
+        {
+          "name": "FAISS Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/faiss/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "faiss",
+                "stats"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Build FAISS Index",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/faiss/build?force_rebuild=false&background=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "faiss",
+                "build"
+              ],
+              "query": [
+                {
+                  "key": "force_rebuild",
+                  "value": "false"
+                },
+                {
+                  "key": "background",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "FAISS Build Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/faiss/build-status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "faiss",
+                "build-status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Build FAISS Index Sync",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/faiss/build?force_rebuild=false&background=false",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "faiss",
+                "build"
+              ],
+              "query": [
+                {
+                  "key": "force_rebuild",
+                  "value": "false"
+                },
+                {
+                  "key": "background",
+                  "value": "false"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Similar Logs by Text",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"SMPP timeout queue full connection reset by peer\",\n  \"k\": 5,\n  \"platform_filter\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/similar-logs/search",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "similar-logs",
+                "search"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Similar Incidents by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/similar-incidents/{{incidentId}}?k=3",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "similar-incidents",
+                "{{incidentId}}"
+              ],
+              "query": [
+                {
+                  "key": "k",
+                  "value": "3"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Model Drift Overview",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/model-drift",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "model-drift"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Model Drift Latest",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/model-drift/latest",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "model-drift",
+                "latest"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+class LogFeature {
+  +log_index : int
+  +timestamp : datetime
+  +platform : string
+  +message : string
+  +hour : int
+  +weekday : int
+  +is_error : bool
+  +is_warning : bool
+}
+
+class Anomaly {
+  +_id : ObjectId
+  +log_index : int
+  +incident_id : string
+  +platform : string
+  +message : string
+  +anomaly_score : float
+  +confidence : float
+  +threshold_used : float
+  +severity : string
+  +impact : string
+  +root_cause : string
+  +recommended_action : string
+  +status : string
+  +created_at : datetime
+}
+
+class Incident {
+  +_id : ObjectId
+  +created_at : datetime
+  +status : string
+  +total_anomalies : int
+  +clusters : int
+  +causal_links : int
+  +platforms : string[]
+  +predicted_duration_minutes : int
+}
+
+class IncidentIntelligence {
+  +_id : ObjectId
+  +timestamp : datetime
+  +summary : string
+  +timeline : string[]
+  +severity_label : string
+  +severity_score : float
+  +top_root_causes : list
+  +recommended_actions : string[]
+}
+
+class Alert {
+  +_id : ObjectId
+  +type : string
+  +severity : string
+  +message : string
+  +status : string
+  +created_at : datetime
+  +alert_rank_score : int
+  +operator_priority : string
+}
+
+class Feedback {
+  +_id : ObjectId
+  +anomaly_id : string
+  +label : string
+  +operator_id : string
+  +corrected_cause : string
+  +corrected_severity : string
+  +used_for_training : bool
+}
+
+class ModelDriftReport {
+  +_id : ObjectId
+  +window_label : string
+  +drift_severity : string
+  +drift_score : int
+  +retrain_required : bool
+  +timestamp : datetime
+}
+
+class WhatIfSimulation {
+  +_id : ObjectId
+  +incident_id : string
+  +action_id : string
+  +mttr_before : int
+  +mttr_after : int
+  +confidence : float
+  +risk_level : string
+  +created_at : datetime
+}
+
+LogFeature "1" --> "0..1" Anomaly : peut generer
+Incident "1" --> "0..*" Anomaly : regroupe
+Incident "1" --> "1" IncidentIntelligence : enrichit
+Incident "1" --> "0..*" Alert : genere
+Incident "1" --> "0..*" WhatIfSimulation : simule
+Anomaly "1" --> "0..*" Feedback : recoit
+ModelDriftReport ..> Anomaly : surveille la derive
+@enduml
+

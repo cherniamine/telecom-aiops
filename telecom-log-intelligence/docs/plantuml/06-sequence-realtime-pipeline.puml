@@ -1,0 +1,36 @@
+@startuml
+database "MongoDB logs" as Logs
+participant "MongoStreamListener" as Listener
+participant "RealtimePipeline" as Pipe
+participant "RealtimeProcessor" as Proc
+participant "AnomalyService" as Anom
+participant "save_anomaly()" as SaveAnom
+participant "run_orchestrator()" as Orch
+participant "AlertService" as Alerts
+participant "DashboardService" as Dash
+database "MongoDB anomalies /\nincidents / alerts" as Mongo
+
+Logs -> Listener : nouvel insert
+Listener -> Pipe : change event
+Pipe -> Proc : process_log(document)
+Proc -> Anom : analyze_log(log)
+Anom --> Proc : score + threshold + is_anomaly
+
+alt log normal
+  Proc --> Pipe : continuer
+else anomalie
+  Proc -> SaveAnom : save_anomaly(log, result)
+  SaveAnom -> Mongo : insert anomaly
+  Proc -> Proc : ajouter au buffer
+
+  alt buffer plein ou timeout
+    Proc -> Orch : run_orchestrator(buffered logs)
+    Orch -> Alerts : save_orchestration_alerts(...)
+    Alerts -> Mongo : insert alerts
+    Orch -> Dash : save_incident(result, impact)
+    Dash -> Mongo : insert incident
+    Proc -> Mongo : update anomalies\nincident_id, severity,\nimpact, root_cause
+  end
+end
+@enduml
+

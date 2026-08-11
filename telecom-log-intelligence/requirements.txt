@@ -1,0 +1,13 @@
+pandas
+numpy
+pymongo
+scikit-learn
+scipy
+matplotlib
+seaborn
+streamlit
+python-dotenv
+tqdm
+PyYAML
+PyJWT
+faiss-cpu

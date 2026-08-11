@@ -1,0 +1,93 @@
+@startuml
+left to right direction
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+
+package "Sources de donnees" {
+  [Logs historiques] as Hist
+  [Flux temps reel] as RT
+}
+
+package "Ingestion et preparation" {
+  [LogParserRouter] as Parser
+  [LogNormalizer] as Normalizer
+}
+
+package "Pipelines IA" {
+  [BatchPipeline] as Batch
+  [RealtimePipeline] as RTPipe
+  [RealtimeProcessor] as RTProc
+  [EmbeddingEngine\nMiniLM 384D] as Embed
+  [HybridAnomalyDetector\nIsolationForest + LOF + TF-IDF] as Hybrid
+  [RCA / TelecomRCA] as RCA
+  [ModelDriftDetector] as Drift
+  [FaissSimilarityEngine] as FAISS
+  [WhatIfEngine] as WhatIf
+  [TelecomAICopilot] as Copilot
+}
+
+package "API FastAPI" {
+  [dashboard_api.py] as API
+  [multi_role_dashboard.py] as RoleAPI
+  [DashboardService] as DashService
+}
+
+package "Frontend Angular" {
+  [AuthService] as AuthTS
+  [DashboardService TS] as DashTS
+  [NocService] as NocTS
+  [EngineerService] as EngTS
+  [ManagerService] as MgrTS
+  [FaissService] as FaissTS
+  [WhatIfService] as WhatIfTS
+  [CopilotService] as CopTS
+  [FeedbackService] as FeedTS
+}
+
+database "MongoDB" as Mongo
+file "FAISS Index\nEmbeddings cache" as IndexStore
+cloud "Ollama / Mistral" as Ollama
+
+Hist --> Parser
+RT --> Parser
+Parser --> Normalizer
+Normalizer --> Batch
+Normalizer --> RTPipe
+
+Batch --> Embed
+Batch --> Hybrid
+Batch --> RCA
+Batch --> Drift
+Batch --> Mongo
+
+RTPipe --> RTProc
+RTProc --> Hybrid
+RTProc --> RCA
+RTProc --> Mongo
+
+API --> DashService
+API --> RoleAPI
+API --> WhatIf
+API --> Copilot
+
+DashService --> Mongo
+DashService --> FAISS
+DashService --> Embed
+DashService --> Drift
+
+FAISS --> IndexStore
+FAISS --> Mongo
+WhatIf --> Mongo
+Copilot --> Ollama
+
+AuthTS --> RoleAPI : /auth/login
+DashTS --> API
+NocTS --> API
+EngTS --> API
+MgrTS --> API
+FaissTS --> API
+WhatIfTS --> API
+CopTS --> API
+FeedTS --> API
+@enduml
+

@@ -1,0 +1,38 @@
+@startuml
+participant "BatchPipeline" as Batch
+database "ml_dataset.parquet" as Data
+participant "EmbeddingEngine\nMiniLM 384D" as Embed
+participant "HybridAnomalyDetector" as Hybrid
+participant "ModelDriftDetector" as Drift
+participant "ClusteringEngine" as Cluster
+participant "RCA / Timeline /\nSeverity / Impact" as AI
+participant "IncidentReportSaver" as Saver
+database "MongoDB" as Mongo
+
+Batch -> Data : charger metadata + batches
+
+loop batches de messages
+  Batch -> Embed : embed_batch(messages)
+  Embed --> Batch : vecteurs 384D
+end
+
+loop batches de detection
+  Batch -> Hybrid : predict_with_confidence(df)
+  Hybrid --> Batch : scores + confidence
+end
+
+Batch -> Drift : run_full_drift_analysis(scores, texts)
+Drift --> Batch : rapport de derive
+
+Batch -> Cluster : cluster(anomaly_vectors)
+Cluster --> Batch : clusters
+
+Batch -> AI : RCA + timeline + severity + impact
+AI --> Batch : resultats enrichis
+
+Batch -> Saver : save_report(results)
+Saver -> Mongo : insert incidents
+Saver -> Mongo : insert incident_intelligence
+Saver -> Mongo : insert anomalies
+@enduml
+
