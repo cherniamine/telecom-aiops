@@ -1,299 +1,326 @@
-# Telecom Log Intelligence
+# 🧠 Telecom Log Intelligence — Backend AIOps
 
-**Supervision Intelligente et Proactive des Logs Applicatifs par Analyse Avancée et Détection d'Anomalies**
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-REST%20API-009688?logo=fastapi)](https://fastapi.tiangolo.com)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248?logo=mongodb)](https://www.mongodb.com)
+[![scikit-learn](https://img.shields.io/badge/scikit--learn-ML-F7931E?logo=scikitlearn&logoColor=white)](https://scikit-learn.org)
+[![FAISS](https://img.shields.io/badge/FAISS-Vector%20Search-4B8BBE)](https://github.com/facebookresearch/faiss)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com)
 
-## 📋 Description du Projet
+> Moteur d'intelligence AIOps qui transforme des millions de logs applicatifs télécoms en décisions : détection hybride d'anomalies, analyse des causes racines (RCA), prédiction d'impact et de durée, simulation d'actions correctives (What-If), recherche sémantique FAISS et copilote IA — exposés via une API REST FastAPI sécurisée par rôles.
 
-Dans le cadre de mon Projet de Fin d'Études (PFE) en collaboration avec **Tunisie Télécom** et **SICAP**, ce projet vise à transformer les logs applicatifs massifs en un levier décisionnel intelligent pour la supervision proactive des infrastructures télécoms.
+Backend du projet **[Telecom AIOps](../README.md)** (Projet de Fin d'Études, **Tunisie Télécom** × **SICAP**). Le frontend associé est dans [`telecom-ai-dashboard`](../telecom-ai-dashboard/README.md).
 
-Face à la digitalisation croissante des systèmes d'information, les applications génèrent quotidiennement des volumes massifs de logs techniques. La supervision traditionnelle, basée sur des dashboards descriptifs et une approche réactive, montre ses limites face à la complexité croissante des systèmes et l'augmentation continue des volumes de données.
+---
 
-**Telecom Log Intelligence** propose une solution innovante de supervision intelligente qui :
-- Exploite des volumes importants de logs applicatifs (7.2M+ logs)
-- Détecte proactivement les anomalies en temps réel
-- Identifie automatiquement les causes racines des incidents
-- Prédit l'impact et la durée des incidents
-- Recommande des actions de remédiation
-- Réduit les incidents avant qu'ils n'impactent les utilisateurs finaux
+## 📋 Sommaire
 
-## 🏗️ Architecture du Système
-┌─────────────────────────────────────────────────────────────────┐
-│ TELECOM LOG INTELLIGENCE │
-├─────────────────────────────────────────────────────────────────┤
-│ │
-│ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ │
-│ │ Ingestion │────▶│ Batch │────▶│ AI │ │
-│ │ des Logs │ │ Pipeline │ │ Orchestrator │ │
-│ └──────────────┘ └──────────────┘ └──────────────┘ │
-│ │ │ │ │
-│ ▼ ▼ ▼ │
-│ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ │
-│ │ Realtime │ │ MongoDB │ │ Engines │ │
-│ │ Simulator │────▶│ Intelligence│◀───│ (RCA, AI) │ │
-│ └──────────────┘ └──────────────┘ └──────────────┘ │
-│ │ │ │
-│ ▼ ▼ │
-│ ┌──────────────┐ ┌──────────────┐ │
-│ │ Dashboard │ │ Alerts │ │
-│ │ (REST API) │ │ (Email) │ │
-│ └──────────────┘ └──────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
+- [Résultats clés](#-résultats-clés)
+- [Architecture](#-architecture)
+- [Fonctionnalités](#-fonctionnalités)
+- [Stack technique](#-stack-technique)
+- [Installation](#-installation)
+- [Exécution](#-exécution)
+- [API REST](#-api-rest)
+- [Configuration](#-configuration)
+- [Docker](#-docker)
+- [Tests](#-tests)
+- [Sécurité et limites connues](#-sécurité-et-limites-connues)
+- [Perspectives](#-perspectives)
+- [Structure du projet](#-structure-du-projet)
+- [Auteur](#-auteur)
 
-text
+---
 
-## 🚀 Fonctionnalités Principales
+## 📊 Résultats clés
 
-### 1. **Détection d'Anomalies**
-- Détection d'anomalies basée sur l'embedding de logs (sentence-transformers)
-- Isolation Forest pour la détection de points aberrants
-- Identification de 71,393 anomalies sur 7.2M logs
+| Métrique | Valeur |
+|---|---:|
+| Logs historiques traités | **7 224 549** |
+| Anomalies détectées | **47 278** (0,657 %) |
+| Clusters d'incidents | 94 |
+| Liens causaux découverts | 8 |
+| Plateformes supervisées | **5** — MMG, SMSC, SMPPS, SMPPC, DMC |
+| Recherche sémantique FAISS | < 10 ms sur 7,2M de vecteurs |
+| Endpoints API | ~60 |
 
-### 2. **Root Cause Analysis (RCA)**
-- Inférence causale automatique
-- Détection des cascades d'incidents multi-plateformes
-- Identification des causes racines (fail, retry, error, timeout...)
+## 🏗️ Architecture
 
-### 3. **Prédiction d'Impact et de Durée**
-- Estimation de l'impact client (HIGH/MEDIUM/LOW)
-- Prédiction du temps de résolution (8-90 minutes)
-- Évaluation du risque de propagation
+```mermaid
+flowchart LR
+    subgraph In["📥 Entrées"]
+        HIST["Logs historiques<br/>(7,2M+)"]
+        SIM["Simulateur de flux<br/>temps réel"]
+    end
 
-### 4. **Auto-Remédiation**
-- Recommandations d'actions automatiques
-- Ajustement dynamique des actions selon le contexte
+    subgraph Core["⚙️ Pipelines"]
+        ING["Ingestion &<br/>normalisation"]
+        BATCH["Batch pipeline"]
+        RT["Realtime pipeline<br/>(buffer de 20 logs)"]
+    end
 
-### 5. **Supervision Temps Réel**
-- Simulation de flux de logs en temps réel
-- Traitement par batch de 20 logs
-- Alertes email automatiques (SMTP)
+    subgraph AI["🧠 Moteurs IA"]
+        DET["Détection hybride<br/>IF + LOF + TF-IDF"]
+        RCA["RCA topologique<br/>cascades · causalité"]
+        DEC["Impact · Durée<br/>Remédiation"]
+        WIF["What-If<br/>(8 actions)"]
+        FAISS["Recherche sémantique<br/>FAISS (MiniLM-384)"]
+        LLM["Copilot<br/>(Ollama)"]
+        DRIFT["Drift · Feedback<br/>loop"]
+    end
 
-### 6. **Dashboard API REST**
-- Vue d'ensemble des incidents
-- Analyse des anomalies
-- Visualisation de la timeline
-- Heatmap par plateforme
-- Historique complet des incidents
+    DB[("MongoDB")]
+    API["API FastAPI<br/>JWT · rôles"]
+    MAIL["Alertes email<br/>(SMTP)"]
+    FE["Dashboard Angular"]
 
-## 🛠️ Stack Technique
+    HIST --> ING --> BATCH --> DET
+    SIM --> RT --> DET
+    DET --> RCA --> DEC
+    DEC --> WIF
+    DET <--> DB
+    RCA <--> DB
+    DEC --> MAIL
+    FAISS <--> DB
+    DRIFT <--> DB
+    API <--> DB
+    API --> FAISS
+    API --> LLM
+    API --> WIF
+    API --> DRIFT
+    FE <-->|"REST"| API
+```
 
-| Composant | Technologie |
-|-----------|------------|
-| **Langage** | Python 3.14 |
-| **IA/ML** | Sentence-Transformers, Isolation Forest, Scikit-learn |
-| **Base de Données** | MongoDB |
-| **API** | Flask (RESTful) |
-| **Traitement** | Pandas, NumPy |
-| **Email** | SMTP (Gmail) |
+## ✨ Fonctionnalités
 
-## 📊 Structure du Projet
-telecom-log-intelligence/
-├── ai/ # Moteurs IA
-│ ├── orchestrator/ # Orchestrateur principal
-│ ├── engine/ # Moteurs (RCA, anomalies, propagation)
-│ ├── decisioning/ # Estimation impact/durée
-│ ├── notification/ # Alertes email
-│ └── prediction/ # Prédictions (évolution, similarité)
-├── pipeline/ # Pipelines batch & temps réel
-├── realtime/ # Simulateur de flux temps réel
-├── ingestion/ # Parsing et normalisation des logs
-├── dashboard/ # API REST (Flask)
-├── database/ # Client MongoDB
-├── services/ # Services métier
-├── ml/ # Modèles ML
-│ ├── models/ # Modèles entraînés
-│ ├── training/ # Entraînement des modèles
-│ └── evaluation/ # Métriques d'évaluation
-├── data/ # Données (exclues du Git)
-├── notebooks/ # Jupyter notebooks d'analyse
-├── config/ # Configuration
-├── docker/ # Fichiers Docker
-├── docs/ # Documentation
-├── tests/ # Tests unitaires
-├── .env # Variables d'environnement
-├── .gitignore # Fichiers ignorés par Git
-├── main.py # Point d'entrée principal
-└── requirements.txt # Dépendances Python
+**1. Détection hybride d'anomalies** (`ai/engine`, `ml/`)
+Combinaison de trois détecteurs complémentaires : **Isolation Forest**, **Local Outlier Factor** (mode novelty) et **TF-IDF** (composante textuelle), appliqués à des embeddings sémantiques **all-MiniLM-L6-v2** (384 dimensions), avec seuils dynamiques par plateforme.
 
-text
+**2. Root Cause Analysis topologique** (`ai/engine`)
+Inférence causale, clustering d'anomalies et détection de **cascades d'incidents** entre plateformes selon la topologie télécom (`config/topology.yaml`).
 
-## 📦 Installation
+**3. Prédiction d'impact, de durée et remédiation** (`ai/decisioning`, `ai/prediction`, `ml/incident`)
+Estimation de l'impact client (HIGH / MEDIUM / LOW), de la durée de résolution, de l'évolution de l'incident et recommandation automatique d'actions de remédiation.
+
+**4. Simulateur What-If** (`ai/engine`)
+Comparaison de **8 actions correctives** (capacité de file SMSC, redémarrage des sessions SMPP, réduction des retries, isolation de plateforme, plan combiné…) avec gain de MTTR estimé, niveau de confiance et de risque.
+
+**5. Recherche sémantique FAISS** (`similarity/`)
+Index **IVFPQ** sur les embeddings de logs : retrouve les logs et incidents similaires à partir d'un texte, d'un log existant ou d'un incident.
+
+**6. Copilote IA** (`llm/`)
+Assistant d'aide à la décision et d'explication d'incident, basé sur un LLM local servi par **Ollama** (modèle par défaut : `mistral`).
+
+**7. Drift et boucle de feedback** (`ml/`, `monitoring/`)
+Détection de dérive des modèles, retours opérateurs sur les anomalies (faux positifs / vrais positifs) et déclenchement de ré-entraînement supervisé.
+
+**8. Supervision temps réel et alerting** (`realtime/`, `pipeline/`, `ai/notification`)
+Simulateur de flux, traitement par lots, déduplication des alertes (`ALERT_DEDUP_SECONDS`) et envoi d'emails SMTP.
+
+**9. API multi-rôles** (`dashboard/`)
+Authentification **JWT** et vues dédiées **NOC**, **Manager** et **Ingénieur**.
+
+## 🛠️ Stack technique
+
+| Couche | Technologies |
+|---|---|
+| Langage | Python (3.11+ ; image Docker en 3.11) |
+| API | FastAPI · Uvicorn · Pydantic · PyJWT |
+| ML / NLP | scikit-learn · sentence-transformers (all-MiniLM-L6-v2) · joblib · NetworkX |
+| Recherche vectorielle | FAISS (IVFPQ + IDMap2) |
+| Données | MongoDB · Pandas · NumPy · PyArrow |
+| LLM | Ollama (`mistral` par défaut) |
+| Alertes | SMTP (Gmail) |
+| Infra | Docker · Docker Compose |
+
+## ⚙️ Installation
 
 ### Prérequis
-- Python 3.14+
-- MongoDB (local ou distant)
-- Git LFS (optionnel pour les modèles)
+- Python 3.11+
+- MongoDB (local, ou via Docker Compose — voir [Docker](#-docker))
+- [Ollama](https://ollama.com) *(optionnel — uniquement pour le copilote IA)*
 
-### Étapes d'installation
+### Étapes
 
 ```bash
-# 1. Cloner le repository
-git clone https://github.com/cherniamine/telecom-log-intelligence.git
-cd telecom-log-intelligence
+# 1. Cloner le dépôt
+git clone https://github.com/cherniamine/telecom-aiops.git
+cd telecom-aiops/telecom-log-intelligence
 
-# 2. Créer l'environnement virtuel
+# 2. Environnement virtuel
 python -m venv venv
-source venv/bin/activate  # Linux/Mac
-.\venv\Scripts\activate   # Windows
+source venv/bin/activate        # Linux / macOS
+.\venv\Scripts\activate         # Windows
 
-# 3. Installer les dépendances
+# 3. Dépendances
 pip install -r requirements.txt
 
-# 4. Configurer les variables d'environnement
-# Créer et éditer le fichier .env avec vos configurations
-# Exemple de contenu .env:
-# MONGODB_URI=mongodb://localhost:27017/
-# EMAIL_SENDER=your_email@gmail.com
-# EMAIL_PASSWORD=your_app_password
+# 4. Configuration
+cp env.example .env             # puis renseigner les valeurs (voir Configuration)
+```
 
-# 5. Lancer MongoDB (assurez-vous qu'il est démarré)
-mongod --dbpath /path/to/data
+> 📌 Les **données** (logs, embeddings, index FAISS) et les **modèles entraînés** ne sont pas versionnés (voir `.gitignore`). Contacter l'auteur pour y accéder.
 
-# 6. Initialiser la base de données (optionnel)
-python -c "from database.mongodb_client import get_db; get_db()"
-🏃 Exécution
-1. Pipeline Batch (analyse historique)
-bash
+## 🏃 Exécution
+
+**1. Pipeline batch** — analyse de l'historique (détection, clustering, RCA)
+```bash
 python -m pipeline.batch_pipeline
-Analyse 7.2M logs historiques
+```
 
-Détection des anomalies, clustering, RCA
-
-Génération du rapport d'incident
-
-2. Orchestrateur AI (analyse complète)
-bash
+**2. Orchestrateur IA** — analyse complète (impact, durée, remédiation, incidents similaires)
+```bash
 python -m ai.orchestrator.telecom_ai_orchestrator
-Impact estimation
+```
 
-Duration prediction
-
-Auto-remediation
-
-Similar incident search
-
-3. Simulation Temps Réel
-bash
-# Terminal 1: Simulateur de flux
+**3. Temps réel** — simulateur + pipeline
+```bash
+# Terminal 1 : simulateur de flux
 python -m realtime.log_stream_simulator
 
-# Terminal 2: Pipeline temps réel
+# Terminal 2 : pipeline temps réel
 python -m pipeline.realtime_pipeline
-4. Dashboard API
-bash
+```
+Ou, en une commande (pipeline temps réel + boucle d'analyse IA) :
+```bash
+python main.py
+```
+
+**4. API Dashboard**
+```bash
 python -m dashboard.dashboard_api
-Accès API: http://localhost:5000
+# API       → http://localhost:8000
+# Swagger   → http://localhost:8000/docs
+```
 
-📡 Endpoints API
-Endpoint	Description
-GET /dashboard/overview	Vue d'ensemble du système
-GET /dashboard/anomalies	Liste des anomalies détectées
-GET /dashboard/rca	Analyse des causes racines
-GET /dashboard/timeline	Timeline des incidents
-GET /dashboard/heatmap	Distribution des anomalies par plateforme
-GET /dashboard/impact	Estimation d'impact
-GET /dashboard/duration	Prédiction de durée
-GET /dashboard/intelligence	Intelligence synthétique de l'incident
-GET /dashboard/evolution	Prédiction d'évolution
-GET /dashboard/remediation	Actions de remédiation
-GET /dashboard/similar-incidents	Incidents similaires
-GET /dashboard/alerts	Flux d'alertes
-GET /dashboard/incidents	Incidents actifs
-GET /dashboard/incidents/history	Historique des incidents
-GET /dashboard/predictions	Prédictions globales
-GET /dashboard/system-status	Statut du système
-GET /dashboard/email-alerts	Suivi des alertes email
-Exemple d'appel API
-bash
-curl -X GET http://localhost:5000/dashboard/overview
-📊 Résultats et Performances
-Métriques Clés
-Volume traité: 7,224,549 logs
+Exemple d'appel :
+```bash
+curl http://localhost:8000/dashboard/overview
+```
 
-Anomalies détectées: 71,393 (~1%)
+## 📡 API REST
 
-Clusters identifiés: 78
+~60 endpoints exposés par FastAPI (documentation interactive sur `/docs`).
 
-Liens causals découverts: 8
+| Domaine | Endpoints principaux |
+|---|---|
+| **Authentification** | `POST /auth/login` · `GET /dashboard/me` |
+| **Vue NOC** *(JWT : noc, engineer)* | `GET /dashboard/noc/alerts` · `/noc/queue` · `/noc/realtime` |
+| **Vue Manager** *(JWT : manager, engineer)* | `GET /dashboard/manager/kpis` · `/manager/trends` · `/manager/sla-report` |
+| **Vue Ingénieur** *(JWT)* | `GET /dashboard/engineer/ml-metrics` · `/engineer/details/{incident_id}` · `/engineer/logs/raw` |
+| **Supervision** | `GET /health` · `/dashboard/overview` · `/anomalies` · `/timeline` · `/heatmap` · `/system-status` |
+| **Incidents & alertes** | `GET /dashboard/incidents` · `/incidents/history` · `/alerts` · `/alerts/stats` · `/email-alerts` · `POST /incidents/{id}/resolve` |
+| **RCA & prédiction** | `GET /dashboard/rca` · `/impact` · `/duration` · `/evolution` · `/remediation` · `/intelligence` · `/predictions` |
+| **What-If** | `GET /dashboard/what-if/actions` · `POST /what-if/simulate` · `/what-if/compare` · `GET /what-if/best-action/{incident_id}` |
+| **Recherche sémantique (FAISS)** | `POST /dashboard/similar-logs/search` · `GET /similar-logs/{log_index}` · `/similar-incidents/{id}` · `/faiss/stats` · `POST /faiss/build` |
+| **Copilote IA** | `POST /dashboard/copilot/ask` · `/explain` · `GET /copilot/panel` · `/copilot/model` |
+| **Drift** | `GET /dashboard/model-drift` · `/model-drift/latest` · `/model-drift/history` · `POST /model-drift/analyze` · `/model-drift/set-reference` |
+| **Feedback** | `POST /dashboard/feedback/anomaly/{id}` · `/feedback/anomaly/batch` · `GET /feedback/stats` · `/feedback/pending` · `POST /feedback/retrain` |
 
-Plateformes supervisées: MMG, SMSC, SMPPS, DMC
+Les chemins ci-dessus sont relatifs à `/dashboard` (sauf `/auth` et `/health`).
 
-Exemple de Résultat
-text
-═══════════════════════════════════════════════════════════
-INCIDENT DETECTED
-═══════════════════════════════════════════════════════════
-Severity: CRITICAL
-Anomalies: 71,393
-Propagation: MMG → SMSC → SMPPS → DMC
-Root Causes: fail (2,925,539), retry (212,017), error (204,353)
-Impact: HIGH customer impact
-Predicted Resolution: 90 minutes
-Recommendations:
-  - Investigate failing telecom components
-  - Increase SMSC queue capacity
-  - Throttle retry storms
-═══════════════════════════════════════════════════════════
-🔧 Configuration
-Variables d'environnement (.env)
-bash
-# MongoDB
-MONGODB_URI=mongodb://localhost:27017/
-MONGODB_DATABASE=telecom_logs
+## 🔧 Configuration
 
-# Email (Gmail)
-EMAIL_SENDER=your_email@gmail.com
-EMAIL_PASSWORD=your_app_password
-EMAIL_RECIPIENTS=recipient1@gmail.com,recipient2@gmail.com
+Copier [`env.example`](env.example) vers `.env`. Variables principales :
 
-# API
-API_HOST=0.0.0.0
-API_PORT=5000
-API_DEBUG=False
+| Variable | Rôle | Défaut |
+|---|---|---|
+| `MONGO_URI` | Connexion MongoDB | `mongodb://mongodb:27017` (valeur de `settings.py`) |
+| `DATABASE_NAME` | Base de données | `telecom_logs` |
+| `COLLECTION_NAME` / `ANOMALY_COLLECTION` / `ALERT_COLLECTION` | Collections MongoDB | `log_features` / `anomalies` / `alerts` |
+| `JWT_SECRET` | Secret de signature des jetons | ⚠️ **à définir** (voir Sécurité) |
+| `EMAIL_ALERT_SENDER` / `EMAIL_ALERT_PASSWORD` / `EMAIL_ALERT_RECIPIENTS` | Alertes SMTP (mot de passe d'application) | — |
+| `DASHBOARD_API_HOST` / `DASHBOARD_API_PORT` | Hôte et port de l'API | `127.0.0.1` / `8000` |
+| `OLLAMA_MODEL` / `OLLAMA_URL` / `OLLAMA_TIMEOUT_SECONDS` | Copilote IA | `mistral` / `http://127.0.0.1:11434/api/generate` / `30` |
+| `REALTIME_BUFFER_SIZE` / `REALTIME_BUFFER_MAX_WAIT_SECONDS` | Pipeline temps réel | `20` / `5` |
+| `SIMULATOR_*` | Paramètres du simulateur de flux | voir `env.example` |
+| `FAISS_EMBEDDINGS_PATH` / `FAISS_DATASET_PATH` | Fichiers sources de l'index FAISS | voir `env.example` |
 
-# ML Models
-MODELS_PATH=ml/models/
-CACHE_PATH=data/cache/
-🧪 Tests
-bash
-# Exécuter tous les tests
+> Utiliser un **mot de passe d'application** Gmail dédié, jamais le mot de passe principal du compte.
+
+## 🐳 Docker
+
+Le dossier [`docker/`](docker) fournit un `docker-compose.yml` qui démarre **MongoDB** (avec healthcheck) et un conteneur d'**ingénierie de features** (`analysis/feature_engineering.py`) :
+
+```bash
+cd docker
+docker compose up --build
+```
+
+> L'API FastAPI n'est pas (encore) conteneurisée : elle se lance en local avec `python -m dashboard.dashboard_api`. Pour ne démarrer que la base : `docker compose up mongodb`.
+
+## 🧪 Tests
+
+Suite de tests **pytest** (18 modules dans `tests/` : moteurs d'anomalies, RCA, topologie, What-If, drift, alertes, pipelines, API…).
+
+```bash
 pytest tests/
+pytest tests/test_what_if_engine.py      # un module précis
+pytest --cov=. tests/                    # avec couverture (pytest-cov requis)
+```
 
-# Exécuter un test spécifique
-pytest tests/test_anomaly_engine.py
+> Certains tests supposent une base MongoDB accessible et/ou un index FAISS disponible.
 
-# Avec couverture
-pytest --cov=. tests/
-📈 Perspectives d'Évolution
-Intégration continue avec CI/CD
+## 🔐 Sécurité et limites connues
 
-Tableau de bord Angular pour visualisation avancée
+Transparence sur l'état actuel du projet (prototype académique) :
 
-LLM Copilot pour l'explication des logs
+- **Secret JWT de repli** : si `JWT_SECRET` n'est pas défini, le code utilise une valeur par défaut codée en dur. Toujours définir un secret fort et aléatoire hors démonstration locale.
+- **Comptes de démonstration** : les utilisateurs `noc_operator`, `manager_demo` et `engineer_demo` sont définis en dur (`DEMO_USERS`). À remplacer par un vrai annuaire pour tout usage réel.
+- **Périmètre de l'authentification** : seuls les endpoints des vues par rôle (`/dashboard/noc/*`, `/manager/*`, `/engineer/*`, `/me`) vérifient le JWT. Les endpoints d'analyse et d'action (`/dashboard/overview`, `/incidents/{id}/resolve`, `/faiss/build`, `/feedback/retrain`, `/model-drift/set-reference`…) **ne sont pas encore protégés** — à sécuriser avant toute exposition réseau.
+- **CORS** : `allow_origins=["*"]` — à restreindre au domaine du dashboard en production.
+- **Configuration partielle en dur** : `main.py` définit l'URI MongoDB directement dans le code.
+- **Données non versionnées** : logs, embeddings, index FAISS et modèles ne figurent pas dans le dépôt.
 
-Digital Twin pour simulation de propagation
+## 🔭 Perspectives
 
-GNN (Graph Neural Networks) pour modélisation des dépendances télécoms
+- Protéger l'ensemble des endpoints par JWT + permissions fines (RBAC)
+- Conteneuriser l'API et le frontend (Docker Compose complet) et ajouter un pipeline CI/CD
+- Diffusion temps réel par WebSocket vers le dashboard
+- *Digital Twin* du réseau pour simuler la propagation des incidents (prototype minimal dans `ai/engine/telecom_digital_twin_engine.py`)
+- Modélisation des dépendances télécoms par *Graph Neural Networks* (heuristique de graphe de dépendances dans `ai/engine/telecom_gnn_rca_engine.py`, à remplacer par un vrai GNN)
 
-Détection en temps réel avec WebSockets
+## 📁 Structure du projet
 
-API REST avec authentification JWT
+```
+telecom-log-intelligence/
+├── ai/
+│   ├── orchestrator/     # Orchestrateur IA, support de décision, incidents
+│   ├── engine/           # Anomalies, seuils, RCA, topologie, What-If, propagation
+│   ├── decisioning/      # Estimation d'impact, prédiction de durée
+│   ├── prediction/       # Évolution, similarité, remédiation automatique
+│   └── notification/     # Alertes email
+├── analysis/             # Feature engineering
+├── config/               # settings.py, constants, topology.yaml, logging
+├── dashboard/            # API FastAPI (dashboard_api.py, multi_role_dashboard.py)
+├── database/             # Client MongoDB
+├── docker/               # Dockerfile + docker-compose.yml
+├── docs/                 # Documentation et diagrammes
+├── ingestion/            # Parsing et normalisation des logs
+├── llm/                  # Copilote IA (Ollama)
+├── ml/                   # Entraînement, évaluation, inférence, sévérité/recommandations
+├── monitoring/           # Suivi de dérive
+├── notebooks/            # Exploration et prototypage
+├── pipeline/             # Pipelines batch et temps réel
+├── realtime/             # Simulateur de flux
+├── services/             # Services métier
+├── similarity/           # Index et recherche FAISS
+├── tests/                # Tests pytest
+├── env.example
+├── main.py               # Pipeline temps réel + boucle d'analyse IA
+└── requirements.txt
+```
 
-🤝 Contribution
-Ce projet a été développé dans le cadre académique. Les contributions sont les bienvenues pour les améliorations futures.
+Guides complémentaires : [`QUICK_REFERENCE.md`](QUICK_REFERENCE.md) · [`REALTIME_PIPELINE_QUICK_START.md`](REALTIME_PIPELINE_QUICK_START.md)
 
-👤 Auteur
-Mohamed Amine Cherni
-Projet de Fin d'Études - Master en Data Science & Intelligence Artificielle
+## 👤 Auteur
 
+**Cherni Mohamed Amine** — Projet de Fin d'Études, Génie Informatique (soutenu le 30/06/2026)
+Réalisé avec **Tunisie Télécom** et **SICAP** · Encadrante académique : Mme Sana Hamdi · Encadrant professionnel : M. Badreddine Babay
 
-📝 Licence
-Ce projet est développé dans le cadre académique du PFE. Tous droits réservés.
+- 💻 [GitHub](https://github.com/cherniamine) · 🔗 [LinkedIn](https://www.linkedin.com/in/cherni-mohamed-amine-40158b2b1/)
+- 📧 chernimohamedamine551@gmail.com
 
-Note: Les données (logs, embeddings, modèles) ne sont pas incluses dans le repository Git. Contactez l'auteur pour accéder aux données d'entraînement.
+## 📄 Licence
 
-📞 Contact
-Pour toute question concernant ce projet, veuillez contacter :
-
-Email: chernimohamedamine551@gmail.com
-
-GitHub: @cherniamine
+Projet développé dans le cadre académique d'un PFE. Tous droits réservés — contacter l'auteur pour toute réutilisation.
