@@ -1,7 +1,7 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
  
-type TabIconId = 'overview' | 'rca' | 'whatif' | 'copilot' | 'faiss';
+type TabIconId = 'overview' | 'rca' | 'investigation' | 'whatif' | 'copilot' | 'faiss';
  
 @Component({
   selector: 'app-tab-icon',
@@ -28,6 +28,12 @@ type TabIconId = 'overview' | 'rca' | 'whatif' | 'copilot' | 'faiss';
         <path d="M8 2v4M8 10v4M2 8h4M10 8h4"
               stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
         <circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.3"/>
+      </ng-container>
+
+      <!-- investigation : loupe + signal -->
+      <ng-container *ngIf="id === 'investigation'">
+        <circle cx="6.5" cy="6.5" r="4" stroke="currentColor" stroke-width="1.3"/>
+        <path d="M9.5 9.5L14 14M5 6.5h3M6.5 5v3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
       </ng-container>
  
       <!-- whatif : triangle play -->
@@ -56,4 +62,3 @@ type TabIconId = 'overview' | 'rca' | 'whatif' | 'copilot' | 'faiss';
 export class TabIconComponent {
   @Input() id!: TabIconId;
 }
- 

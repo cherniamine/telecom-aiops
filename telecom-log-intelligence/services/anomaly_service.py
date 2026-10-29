@@ -45,6 +45,9 @@ class AnomalyService:
             for log in logs
         ]
         feature_frame = self._build_feature_frame(normalized_logs)
+        if not hasattr(self.model, "predict_with_confidence"):
+            self.__class__._shared_model = HybridAnomalyDetector()
+            self.model = self.__class__._shared_model
         scores, confidence = self.model.predict_with_confidence(
             feature_frame
         )

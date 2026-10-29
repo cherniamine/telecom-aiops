@@ -38,6 +38,7 @@ class AutoRemediationRecommender:
         root_causes,
         propagation_path,
         severity,
+        dry_run=False,
     ):
 
         keywords = self._normalize_root_causes(root_causes)
@@ -72,7 +73,8 @@ class AutoRemediationRecommender:
             "action_count": len(actions),
         }
 
-        self.db.auto_remediation.insert_one(remediation_doc)
+        if not dry_run:
+            self.db.auto_remediation.insert_one(remediation_doc)
 
         return remediation_doc
 

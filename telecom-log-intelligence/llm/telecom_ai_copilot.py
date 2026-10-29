@@ -106,7 +106,7 @@ class TelecomAICopilot:
             return True
         return False
 
-    def ask(self, question: str, incident_data: dict) -> dict:
+    def ask(self, question: str, incident_data: dict, structured: bool = False) -> dict:
         start_time = time.time()
         self.metrics["total_queries"] += 1
 
@@ -123,6 +123,7 @@ class TelecomAICopilot:
                 context["incident_id"],
                 question,
                 context,
+                structured,
             )
             if cache_key in self._query_cache:
                 cached_result = self._query_cache[cache_key].copy()
@@ -140,12 +141,20 @@ class TelecomAICopilot:
             question_type,
             question,
             context,
+            structured=structured,
         )
 
         try:
             llm_text = self.explainer.generate_text(prompt)
             parsed = self.explainer._parse_json_response(llm_text)
-            answer = str(parsed.get("answer", "")).strip()
+            reasoning = (
+                self._parse_structured_reasoning(parsed)
+                if structured else None
+            )
+            answer = (
+                reasoning["proposed_explanation"]
+                if reasoning else str(parsed.get("answer", "")).strip()
+            )
 
             if not answer or self._is_generic_answer(answer):
                 answer = self._enhance_answer(
@@ -172,6 +181,8 @@ class TelecomAICopilot:
                 "response_time_ms": 0,
                 "timestamp": datetime.now().isoformat(),
             }
+            if reasoning:
+                result["structured_reasoning"] = reasoning
             self.metrics["ollama_success"] += 1
         except Exception as error:
             result = {
@@ -214,12 +225,14 @@ class TelecomAICopilot:
         incident_id: str,
         question: str,
         context: dict,
+        structured: bool = False,
     ) -> str:
         key_data = {
             "incident_id": incident_id,
             "question": question.lower().strip(),
             "severity": context.get("severity"),
             "propagation": tuple(context.get("propagation_path", [])),
+            "structured": structured,
         }
         return json.dumps(key_data, sort_keys=True)
 
@@ -238,6 +251,7 @@ class TelecomAICopilot:
         question_type: str,
         question: str,
         context: dict,
+        structured: bool = False,
     ) -> str:
         propagation_text = (
             " -> ".join(context["propagation_path"])
@@ -315,7 +329,44 @@ Question: {question}
 Give a concise incident explanation with cause, impact and best action.""",
         }
 
-        return prompts.get(question_type, prompts["general"])
+        prompt = prompts.get(question_type, prompts["general"])
+        if not structured:
+            return prompt
+
+        evidence = context.get("agent_evidence", [])
+        return f"""{prompt}
+
+For this request, replace the normal response schema. Return ONLY valid JSON with
+these exact fields:
+{{"proposed_explanation": "...", "supporting_evidence_references": ["..."],
+ "uncertainty": "...", "unsupported_claims": ["..."]}}
+
+Evidence references available to cite: {json.dumps(evidence, ensure_ascii=False)}
+Only cite references from that list. Put every claim that is not directly supported
+by those references in unsupported_claims. Do not invent logs, metrics, causes, or
+remediation outcomes. State uncertainty explicitly even when the evidence agrees.
+"""
+
+    @staticmethod
+    def _parse_structured_reasoning(parsed: dict) -> dict:
+        explanation = str(parsed.get("proposed_explanation", "")).strip()
+        references = parsed.get("supporting_evidence_references")
+        uncertainty = str(parsed.get("uncertainty", "")).strip()
+        unsupported_claims = parsed.get("unsupported_claims")
+        if (
+            not explanation
+            or not uncertainty
+            or not isinstance(references, list)
+            or not isinstance(unsupported_claims, list)
+            or not all(isinstance(item, str) for item in references + unsupported_claims)
+        ):
+            raise ValueError("Structured LLM response is missing required fields")
+        return {
+            "proposed_explanation": explanation,
+            "supporting_evidence_references": references,
+            "uncertainty": uncertainty,
+            "unsupported_claims": unsupported_claims,
+        }
 
     def _is_generic_answer(self, answer: str) -> bool:
         generic_phrases = [

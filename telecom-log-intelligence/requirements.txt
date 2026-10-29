@@ -11,3 +11,7 @@ tqdm
 PyYAML
 PyJWT
 faiss-cpu
+fastapi
+uvicorn
+requests
+pytest

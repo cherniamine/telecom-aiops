@@ -221,6 +221,13 @@ class IncidentExplainer:
             )
             or []
         )
+        incident_summary = incident_data.get("incident_summary", {})
+        incident_summary_payload = (
+            incident_summary
+            if isinstance(incident_summary, dict)
+            else {}
+        )
+
         propagation_path = (
             incident_data.get("propagation_path")
             or incident_data.get("timeline")
@@ -228,7 +235,7 @@ class IncidentExplainer:
                 "propagation_path",
                 [],
             )
-            or incident_data.get("incident_summary", {}).get(
+            or incident_summary_payload.get(
                 "propagation_path",
                 [],
             )
@@ -287,6 +294,7 @@ class IncidentExplainer:
             or 0,
             "affected_services": incident_data.get("affected_services", []),
             "protocol": incident_data.get("protocol", "SMPP/SS7"),
+            "agent_evidence": incident_data.get("agent_evidence", []),
         }
 
     def explain_incident(self, incident_data: dict) -> dict:

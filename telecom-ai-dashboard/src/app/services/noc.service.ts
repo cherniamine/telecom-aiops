@@ -39,13 +39,13 @@ export interface NocAlertsResponse {
 export interface NocQueueItem {
   _id:            string;
   timestamp:      string;
-  platform:       string;
+  platform:       string | null;
   message:        string;
   anomaly_score:  number;
   threshold_used?: number;
   threshold_type?: string;
   status:         string;
-  urgency:        'URGENT' | 'HIGH' | 'NORMAL';
+  urgency:        'URGENT' | 'HIGH' | 'NORMAL' | null;
   feedback_labels?: string[];
   model?:         { score: number; confidence: number; model: string };
 }

@@ -32,7 +32,12 @@ export class BaseApiService {
   }
 
   private handleError(err: any): Observable<never> {
-    const message = err?.error?.detail ?? err?.message ?? 'Erreur API inconnue';
+    const detail = err?.error?.detail;
+    const message = Array.isArray(detail)
+      ? detail.map(item => item?.msg ?? 'Requête invalide').join(' ')
+      : typeof detail === 'string'
+        ? detail
+        : err?.message ?? 'Erreur API inconnue';
     console.error('[API Error]', message, err);
     return throwError(() => new Error(message));
   }

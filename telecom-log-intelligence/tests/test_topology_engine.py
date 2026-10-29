@@ -6,8 +6,26 @@ def test_topology_learning():
     logs = [
         "DMC request received",
         "MMG processing message",
+        "DMC request received",
+        "MMG processing message",
+        "DMC request received",
+        "MMG processing message",
+        "DMC request received",
+        "MMG processing message",
+        "DMC request received",
+        "MMG processing message",
+        "DMC request received",
+        "MMG processing message",
         "SMSC routing sms",
-        "SMPP session send"
+        "SMPP session send",
+        "SMSC routing sms",
+        "SMPP session send",
+        "SMSC routing sms",
+        "SMPP session send",
+        "SMSC routing sms",
+        "SMPP session send",
+        "SMSC routing sms",
+        "SMPP session send",
     ]
 
     engine = TelecomTopologyEngine()
@@ -16,4 +34,5 @@ def test_topology_learning():
 
     edges = engine.build_topology()
 
-    assert len(edges) >= 1
+    assert ("DMC", "MMG") in edges
+    assert ("SMSC", "SMPP") not in edges

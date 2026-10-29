@@ -1,4 +1,5 @@
 import os
+import re
 from datetime import datetime, timezone, timedelta
 
 from bson import ObjectId
@@ -93,6 +94,21 @@ class DashboardService:
             enriched_documents.append(document)
 
         return self._serialize_value(enriched_documents)
+
+    def get_incident_anomalies(self, incident_id, limit=200):
+        """Return anomalies linked to one incident without the dashboard recency limit."""
+        query_values = [incident_id]
+        object_id = self._to_object_id(incident_id)
+
+        if object_id is not None:
+            query_values.append(object_id)
+
+        documents = list(
+            self.db.anomalies.find(
+                {"incident_id": {"$in": query_values}}
+            ).sort("created_at", -1).limit(limit)
+        )
+        return self._serialize_value(documents)
 
     def _enrich_anomaly_from_incident(self, document, incident):
         """Enrich anomaly with data from its associated incident."""
@@ -666,6 +682,159 @@ class DashboardService:
                 "snapshot_count": len(snapshots),
             }
         )
+
+    def save_agent_investigation(self, request: dict, report: dict) -> dict:
+        """Persist an agent report as an audit snapshot, never as remediation state."""
+        document = {
+            "incident_id": str(request["incident_id"]),
+            "request": self._redact_investigation_history_value(request),
+            "report": self._redact_investigation_history_value(report),
+            "created_at": datetime.now(timezone.utc),
+        }
+        result = self.db.agent_investigations.insert_one(document)
+        document["_id"] = result.inserted_id
+        return self._serialize_value(document)
+
+    def get_agent_investigation_history(self, incident_id: str, limit: int = 20) -> dict:
+        limit = max(1, min(int(limit), 100))
+        investigations = list(
+            self.db.agent_investigations.find(
+                {"incident_id": str(incident_id)}
+            ).sort("created_at", -1).limit(limit)
+        )
+        return self._serialize_value(
+            {
+                "incident_id": str(incident_id),
+                "investigations": investigations,
+                "count": len(investigations),
+            }
+        )
+
+    def incident_exists(self, incident_id: str) -> bool:
+        """Check only the incident identity; resource ACLs are not modeled yet."""
+        object_id = self._to_object_id(incident_id)
+        queries = [{"_id": str(incident_id)}]
+        if object_id is not None:
+            queries.insert(0, {"_id": object_id})
+        return self.db.incidents.find_one({"$or": queries}, {"_id": 1}) is not None
+
+    def compare_agent_investigations(
+        self, incident_id: str, baseline_id: str, candidate_id: str
+    ) -> dict | None:
+        baseline = self._find_agent_investigation(incident_id, baseline_id)
+        candidate = self._find_agent_investigation(incident_id, candidate_id)
+        if not baseline or not candidate:
+            return None
+
+        baseline_report = baseline.get("report") if isinstance(baseline.get("report"), dict) else {}
+        candidate_report = candidate.get("report") if isinstance(candidate.get("report"), dict) else {}
+        missing_data = []
+        baseline_confidence = self._finite_number(baseline_report.get("confidence"))
+        candidate_confidence = self._finite_number(candidate_report.get("confidence"))
+        if baseline_confidence is None or candidate_confidence is None:
+            missing_data.append("confidence")
+        baseline_root_cause = baseline_report.get("root_cause")
+        candidate_root_cause = candidate_report.get("root_cause")
+        if baseline_root_cause is None or candidate_root_cause is None:
+            missing_data.append("root_cause")
+        baseline_evidence_items = self._history_list(baseline_report.get("evidence"))
+        candidate_evidence_items = self._history_list(candidate_report.get("evidence"))
+        if not isinstance(baseline_report.get("evidence"), list) or not isinstance(candidate_report.get("evidence"), list):
+            missing_data.append("evidence")
+        baseline_evidence = {
+            str(item.get("reference"))
+            for item in baseline_evidence_items
+            if isinstance(item, dict) and item.get("reference") is not None
+        }
+        candidate_evidence = {
+            str(item.get("reference"))
+            for item in candidate_evidence_items
+            if isinstance(item, dict) and item.get("reference") is not None
+        }
+        baseline_degraded_values = self._history_list(baseline_report.get("degraded_components"))
+        candidate_degraded_values = self._history_list(candidate_report.get("degraded_components"))
+        if not isinstance(baseline_report.get("degraded_components"), list) or not isinstance(candidate_report.get("degraded_components"), list):
+            missing_data.append("degraded_components")
+        baseline_degraded = {str(item) for item in baseline_degraded_values}
+        candidate_degraded = {str(item) for item in candidate_degraded_values}
+
+        return self._serialize_value(
+            {
+                "incident_id": str(incident_id),
+                "baseline": baseline,
+                "candidate": candidate,
+                "changes": {
+                    "confidence_delta": (
+                        round(candidate_confidence - baseline_confidence, 4)
+                        if baseline_confidence is not None and candidate_confidence is not None
+                        else None
+                    ),
+                    "root_cause_changed": (
+                        baseline_root_cause != candidate_root_cause
+                        if "root_cause" not in missing_data
+                        else None
+                    ),
+                    "evidence_count_delta": (
+                        len(candidate_evidence_items) - len(baseline_evidence_items)
+                        if "evidence" not in missing_data
+                        else None
+                    ),
+                    "new_evidence_references": sorted(
+                        candidate_evidence - baseline_evidence
+                    ),
+                    "removed_evidence_references": sorted(
+                        baseline_evidence - candidate_evidence
+                    ),
+                    "new_degraded_components": sorted(
+                        candidate_degraded - baseline_degraded
+                    ),
+                    "recovered_components": sorted(
+                        baseline_degraded - candidate_degraded
+                    ),
+                    "missing_data": missing_data,
+                },
+            }
+        )
+
+    def _find_agent_investigation(
+        self, incident_id: str, investigation_id: str
+    ) -> dict | None:
+        query = {"incident_id": str(incident_id), "_id": self._to_object_id(investigation_id)}
+        if query["_id"] is None:
+            return None
+        return self.db.agent_investigations.find_one(query)
+
+    @staticmethod
+    def _history_list(value) -> list:
+        return value if isinstance(value, list) else []
+
+    @staticmethod
+    def _finite_number(value) -> float | None:
+        try:
+            number = float(value)
+        except (TypeError, ValueError):
+            return None
+        return number if number == number and abs(number) != float("inf") else None
+
+    def _redact_investigation_history_value(self, value):
+        """Avoid retaining credential-like values in read-only audit snapshots."""
+        if isinstance(value, dict):
+            redacted = {}
+            for key, item in value.items():
+                normalized_key = str(key).lower().replace("-", "_")
+                if normalized_key in {
+                    "authorization", "password", "secret", "token", "access_token",
+                    "refresh_token", "api_key", "apikey",
+                }:
+                    redacted[key] = "[REDACTED]"
+                else:
+                    redacted[key] = self._redact_investigation_history_value(item)
+            return redacted
+        if isinstance(value, list):
+            return [self._redact_investigation_history_value(item) for item in value]
+        if isinstance(value, str):
+            return re.sub(r"(?i)bearer\s+[a-z0-9._~+/-]+=*", "Bearer [REDACTED]", value)
+        return value
 
     def get_email_alerts(self):
         recipients = [

@@ -2,6 +2,8 @@ from collections import defaultdict
 
 class TelecomTopologyEngine:
 
+    MIN_TRANSITION_COUNT = 5
+
     def __init__(self):
 
         self.transitions = defaultdict(int)
@@ -32,7 +34,7 @@ class TelecomTopologyEngine:
 
         for (src, dst), count in self.transitions.items():
 
-            if count > 5:
+            if count > self.MIN_TRANSITION_COUNT:
                 edges.append((src, dst))
 
         return edges

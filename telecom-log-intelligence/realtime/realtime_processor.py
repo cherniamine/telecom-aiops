@@ -47,6 +47,9 @@ class RealtimeProcessor:
         3. Add to buffer for orchestration
         4. Flush when buffer is full or timeout reached
         """
+        if not isinstance(log, dict):
+            log = {"message": str(log)}
+
         log_id = log.get("_id")
         platform = log.get("platform", "UNKNOWN")
         message = log.get("message", "")[:50]
@@ -298,4 +301,3 @@ class RealtimeProcessor:
         Returns the length of the propagation path (1-4+).
         """
         return len(propagation_path) if propagation_path else 1
-

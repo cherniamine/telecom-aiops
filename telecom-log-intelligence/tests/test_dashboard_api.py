@@ -2,9 +2,269 @@ from fastapi.testclient import TestClient
 import dashboard.dashboard_api as dashboard_api_module
 import dashboard.multi_role_dashboard as multi_role_module
 from dashboard.dashboard_api import app
+from dashboard.dashboard_service import DashboardService
+from agent.schemas import InvestigationReport
 
 
 client = TestClient(app)
+
+
+def _agent_headers(username="noc_operator", password="noc123"):
+    response = client.post(
+        "/auth/login", json={"username": username, "password": password}
+    )
+    return {"Authorization": f"Bearer {response.json()['access_token']}"}
+
+
+def _agent_report() -> InvestigationReport:
+    return InvestigationReport(
+        incident_id="INC-1",
+        root_cause="[('timeout', 3)]",
+        confidence=0.6,
+        evidence=[],
+        recommended_action="Investigate manually",
+        status="insufficient_data",
+    )
+
+
+def test_agent_investigation_persists_audit_snapshot(monkeypatch):
+    saved = []
+    monkeypatch.setattr(dashboard_api_module.incident_response_agent, "investigate", lambda request: _agent_report())
+    monkeypatch.setattr(dashboard_api_module.dashboard_service, "save_agent_investigation", lambda request, report: saved.append((request, report)))
+
+    response = client.post("/agent/investigate", json={
+        "incident_id": "INC-1", "service": "SMSC", "alert": "timeout", "severity": "high",
+    }, headers=_agent_headers())
+
+    assert response.status_code == 200
+    assert saved[0][0]["incident_id"] == "INC-1"
+    assert saved[0][1]["root_cause"] == "[('timeout', 3)]"
+
+
+def test_agent_investigation_degrades_when_history_write_fails(monkeypatch):
+    report = _agent_report().model_copy(update={"status": "investigated"})
+    monkeypatch.setattr(dashboard_api_module.incident_response_agent, "investigate", lambda request: report)
+    monkeypatch.setattr(
+        dashboard_api_module.dashboard_service,
+        "save_agent_investigation",
+        lambda request, report: (_ for _ in ()).throw(RuntimeError("Mongo unavailable")),
+    )
+
+    response = client.post("/agent/investigate", json={
+        "incident_id": "INC-1", "service": "SMSC", "alert": "timeout", "severity": "high",
+    }, headers=_agent_headers())
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "degraded"
+    assert "history" in response.json()["degraded_components"]
+
+
+def test_agent_investigation_history_returns_persisted_snapshots(monkeypatch):
+    monkeypatch.setattr(
+        dashboard_api_module.dashboard_service,
+        "get_agent_investigation_history",
+        lambda incident_id, limit: {
+            "incident_id": incident_id,
+            "investigations": [{"_id": "snapshot-1", "incident_id": incident_id}],
+            "count": 1,
+        },
+    )
+
+    response = client.get("/agent/investigations/INC-1?limit=5", headers=_agent_headers())
+
+    assert response.status_code == 200
+    assert response.json()["count"] == 1
+    assert response.json()["investigations"][0]["_id"] == "snapshot-1"
+
+
+def test_agent_investigation_comparison_returns_backend_changes(monkeypatch):
+    monkeypatch.setattr(
+        dashboard_api_module.dashboard_service,
+        "compare_agent_investigations",
+        lambda incident_id, baseline_id, candidate_id: {
+            "incident_id": incident_id,
+            "baseline": {"_id": baseline_id},
+            "candidate": {"_id": candidate_id},
+            "changes": {"confidence_delta": 0.1, "root_cause_changed": False},
+        },
+    )
+
+    response = client.get(
+        "/agent/investigations/INC-1/compare?baseline_id=snapshot-1&candidate_id=snapshot-2",
+        headers=_agent_headers(),
+    )
+
+    assert response.status_code == 200
+    assert response.json()["changes"]["confidence_delta"] == 0.1
+
+
+def test_agent_investigation_comparison_returns_not_found_for_unknown_snapshot(monkeypatch):
+    monkeypatch.setattr(
+        dashboard_api_module.dashboard_service,
+        "compare_agent_investigations",
+        lambda incident_id, baseline_id, candidate_id: None,
+    )
+
+    response = client.get(
+        "/agent/investigations/INC-1/compare?baseline_id=missing&candidate_id=other",
+        headers=_agent_headers(),
+    )
+
+    assert response.status_code == 404
+
+
+def test_agent_history_requires_authentication():
+    response = client.get("/agent/investigations/INC-1")
+
+    assert response.status_code == 401
+
+
+def test_agent_investigation_requires_authentication():
+    response = client.post("/agent/investigate", json={
+        "incident_id": "INC-1", "service": "SMSC", "alert": "timeout", "severity": "high",
+    })
+
+    assert response.status_code == 401
+
+
+def test_agent_history_rejects_authenticated_role_without_access(monkeypatch):
+    token = multi_role_module._encode_token({"sub": "viewer", "role": "viewer"})
+    monkeypatch.setattr(
+        dashboard_api_module.dashboard_service,
+        "get_agent_investigation_history",
+        lambda incident_id, limit: (_ for _ in ()).throw(AssertionError("must not query history")),
+    )
+
+    response = client.get(
+        "/agent/investigations/INC-1",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 403
+
+
+def test_agent_history_accepts_all_roles_allowed_by_incident_page(monkeypatch):
+    monkeypatch.setattr(
+        dashboard_api_module.dashboard_service,
+        "get_agent_investigation_history",
+        lambda incident_id, limit: {
+            "incident_id": incident_id, "investigations": [], "count": 0,
+        },
+    )
+    monkeypatch.setattr(dashboard_api_module.dashboard_service, "incident_exists", lambda incident_id: True)
+
+    response = client.get(
+        "/agent/investigations/INC-1",
+        headers=_agent_headers("manager_demo", "mgr123"),
+    )
+
+    assert response.status_code == 200
+    assert response.json()["count"] == 0
+
+
+def test_agent_history_returns_not_found_for_unknown_incident(monkeypatch):
+    monkeypatch.setattr(
+        dashboard_api_module.dashboard_service,
+        "get_agent_investigation_history",
+        lambda incident_id, limit: {
+            "incident_id": incident_id, "investigations": [], "count": 0,
+        },
+    )
+    monkeypatch.setattr(dashboard_api_module.dashboard_service, "incident_exists", lambda incident_id: False)
+
+    response = client.get("/agent/investigations/unknown", headers=_agent_headers())
+
+    assert response.status_code == 404
+
+
+def test_agent_history_reports_mongodb_failure(monkeypatch):
+    monkeypatch.setattr(
+        dashboard_api_module.dashboard_service,
+        "get_agent_investigation_history",
+        lambda incident_id, limit: (_ for _ in ()).throw(RuntimeError("Mongo unavailable")),
+    )
+
+    response = client.get("/agent/investigations/INC-1", headers=_agent_headers())
+
+    assert response.status_code == 503
+
+
+def test_agent_comparison_rejects_a_single_snapshot_selection():
+    response = client.get(
+        "/agent/investigations/INC-1/compare?baseline_id=snapshot-1&candidate_id=snapshot-1",
+        headers=_agent_headers(),
+    )
+
+    assert response.status_code == 400
+
+
+def test_agent_comparison_reports_mongodb_failure(monkeypatch):
+    monkeypatch.setattr(
+        dashboard_api_module.dashboard_service,
+        "compare_agent_investigations",
+        lambda incident_id, baseline_id, candidate_id: (_ for _ in ()).throw(RuntimeError("Mongo unavailable")),
+    )
+
+    response = client.get(
+        "/agent/investigations/INC-1/compare?baseline_id=snapshot-1&candidate_id=snapshot-2",
+        headers=_agent_headers(),
+    )
+
+    assert response.status_code == 503
+
+
+def test_history_comparison_uses_persisted_values_and_marks_missing_data():
+    service = DashboardService.__new__(DashboardService)
+    documents = {
+        "baseline": {
+            "_id": "baseline",
+            "incident_id": "INC-1",
+            "report": {
+                "confidence": 0.4,
+                "root_cause": "timeout",
+                "evidence": [{"reference": "log-1"}],
+                "degraded_components": ["llm"],
+            },
+        },
+        "candidate": {
+            "_id": "candidate",
+            "incident_id": "INC-1",
+            "report": {
+                "confidence": 0.7,
+                "root_cause": "connection_pool",
+                "evidence": [{"reference": "log-2"}],
+                "degraded_components": [],
+            },
+        },
+        "incomplete": {"_id": "incomplete", "incident_id": "INC-1", "report": {}},
+    }
+    service._find_agent_investigation = lambda incident_id, snapshot_id: documents.get(snapshot_id)
+    service._serialize_value = lambda value: value
+
+    result = service.compare_agent_investigations("INC-1", "baseline", "candidate")
+    incomplete = service.compare_agent_investigations("INC-1", "baseline", "incomplete")
+
+    assert result["changes"]["confidence_delta"] == 0.3
+    assert result["changes"]["root_cause_changed"] is True
+    assert result["changes"]["new_evidence_references"] == ["log-2"]
+    assert result["changes"]["removed_evidence_references"] == ["log-1"]
+    assert result["changes"]["recovered_components"] == ["llm"]
+    assert incomplete["changes"]["confidence_delta"] is None
+    assert "confidence" in incomplete["changes"]["missing_data"]
+
+
+def test_history_persistence_redacts_credential_like_values():
+    service = DashboardService.__new__(DashboardService)
+
+    redacted = service._redact_investigation_history_value({
+        "access_token": "secret-value",
+        "detail": "Authorization: Bearer abc.def-123",
+        "nested": {"password": "not-for-history"},
+    })
+
+    assert redacted["access_token"] == "[REDACTED]"
+    assert redacted["nested"]["password"] == "[REDACTED]"
+    assert "abc.def-123" not in redacted["detail"]
 
 
 def test_dashboard_overview():

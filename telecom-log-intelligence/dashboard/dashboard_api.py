@@ -1,16 +1,22 @@
 import os
 import socket
+import sys
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 import uvicorn
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 from ai.engine.what_if_engine import WhatIfEngine
+from agent.incident_response_agent import IncidentResponseAgent
+from agent.schemas import InvestigationReport, InvestigationRequest
 from dashboard.copilot_panel import build_copilot_panel_html
-from dashboard.multi_role_dashboard import router as multi_role_router
+from dashboard.multi_role_dashboard import require_role, router as multi_role_router
 from dashboard.dashboard_service import DashboardService
 from llm.explainer import IncidentExplainer
 from llm.telecom_ai_copilot import TelecomAICopilot
@@ -26,6 +32,10 @@ feedback_engine    = AnomalyFeedbackEngine()
 whatif_engine      = WhatIfEngine()
 incident_explainer = IncidentExplainer()
 telecom_copilot    = TelecomAICopilot(explainer=incident_explainer)
+incident_response_agent = IncidentResponseAgent(
+    dashboard_service=dashboard_service,
+    copilot=telecom_copilot,
+)
 
 
 # ============================================================
@@ -523,6 +533,78 @@ def ask_incident_copilot(request: CopilotRequest):
         question=request.question,
         incident_data=incident_data,
     )
+
+
+@app.post("/agent/investigate", response_model=InvestigationReport)
+def investigate_incident(
+    request: InvestigationRequest,
+    user: dict = Depends(require_role("noc", "manager", "engineer")),
+):
+    """Investigate an alert with existing MongoDB, FAISS, RCA and copilot services."""
+    del user
+    report = incident_response_agent.investigate(request)
+    try:
+        dashboard_service.save_agent_investigation(
+            request.model_dump(mode="json"), report.model_dump(mode="json")
+        )
+    except Exception:
+        if "history" not in report.degraded_components:
+            report.degraded_components.append("history")
+        if report.status == "investigated":
+            report.status = "degraded"
+    return report
+
+
+@app.get("/agent/investigations/{incident_id}")
+def get_agent_investigations(
+    incident_id: str,
+    limit: int = 20,
+    user: dict = Depends(require_role("noc", "manager", "engineer")),
+):
+    """Return read-only audit snapshots produced by the incident response agent."""
+    del user
+    try:
+        history = dashboard_service.get_agent_investigation_history(incident_id, limit)
+        if history["count"] == 0 and not dashboard_service.incident_exists(incident_id):
+            raise HTTPException(status_code=404, detail="Incident not found")
+        return history
+    except HTTPException:
+        raise
+    except Exception as error:
+        raise HTTPException(
+            status_code=503,
+            detail="Investigation history unavailable",
+        ) from error
+
+
+@app.get("/agent/investigations/{incident_id}/compare")
+def compare_agent_investigations(
+    incident_id: str,
+    baseline_id: str,
+    candidate_id: str,
+    user: dict = Depends(require_role("noc", "manager", "engineer")),
+):
+    """Compare two recorded investigations for the same incident."""
+    del user
+    if baseline_id == candidate_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Select two distinct investigation snapshots",
+        )
+    try:
+        comparison = dashboard_service.compare_agent_investigations(
+            incident_id, baseline_id, candidate_id
+        )
+        if comparison is None:
+            raise HTTPException(status_code=404, detail="Investigation snapshot not found")
+        return comparison
+    except HTTPException:
+        raise
+    except Exception as error:
+        raise HTTPException(
+            status_code=503,
+            detail="Investigation comparison unavailable",
+        ) from error
 
 
 @app.get("/dashboard/copilot/panel", response_class=HTMLResponse)

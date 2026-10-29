@@ -99,6 +99,44 @@ def test_incident_explainer_build_context_supports_realtime_shape():
     assert context["total_anomalies"] == 3
 
 
+def test_incident_explainer_build_context_accepts_string_incident_summary():
+    explainer = IncidentExplainer(timeout_seconds=1)
+
+    context = explainer.build_context(
+        {
+            "_id": "agent-1",
+            "incident_summary": "SMSC timeout alert",
+            "root_cause": {"root_causes": [["timeout", 4]]},
+        }
+    )
+
+    assert context["incident_id"] == "agent-1"
+    assert context["propagation_path"] == []
+    assert context["root_cause"] == "timeout"
+
+
+def test_incident_explainer_build_context_accepts_dict_incident_summary():
+    explainer = IncidentExplainer(timeout_seconds=1)
+
+    context = explainer.build_context(
+        {
+            "_id": "agent-2",
+            "incident_summary": {"propagation_path": ["SMSC", "SMPPS"]},
+        }
+    )
+
+    assert context["propagation_path"] == ["SMSC", "SMPPS"]
+
+
+def test_incident_explainer_build_context_accepts_missing_incident_summary():
+    explainer = IncidentExplainer(timeout_seconds=1)
+
+    context = explainer.build_context({"_id": "agent-3"})
+
+    assert context["incident_id"] == "agent-3"
+    assert context["propagation_path"] == []
+
+
 def test_telecom_ai_copilot_fallback_combines_root_cause_and_action():
 
     explainer = IncidentExplainer(timeout_seconds=1)
@@ -191,6 +229,69 @@ def test_telecom_ai_copilot_parses_wrapped_json_from_llm(monkeypatch):
     assert result["source"] == "ollama"
     assert result["used_fallback"] is False
     assert "restart SMSC" in result["answer"]
+
+
+def test_telecom_ai_copilot_parses_structured_reasoning(monkeypatch):
+    monkeypatch.setattr(IncidentExplainer, "_test_connection", lambda self: None)
+    explainer = IncidentExplainer(timeout_seconds=1)
+    monkeypatch.setattr(
+        explainer,
+        "generate_text",
+        lambda prompt: ('{"proposed_explanation":"Timeout observed",'
+                        '"supporting_evidence_references":["42"],'
+                        '"uncertainty":"Limited sample",'
+                        '"unsupported_claims":[]}'),
+    )
+    result = TelecomAICopilot(explainer=explainer).ask(
+        "What is the root cause?",
+        {"_id": "inc-1", "agent_evidence": [{"reference": "42"}]},
+        structured=True,
+    )
+
+    assert result["source"] == "ollama"
+    assert result["structured_reasoning"]["supporting_evidence_references"] == ["42"]
+
+
+def test_telecom_ai_copilot_structured_response_missing_fields_uses_fallback(monkeypatch):
+    monkeypatch.setattr(IncidentExplainer, "_test_connection", lambda self: None)
+    explainer = IncidentExplainer(timeout_seconds=1)
+    monkeypatch.setattr(explainer, "generate_text", lambda prompt: '{"answer":"timeout"}')
+
+    result = TelecomAICopilot(explainer=explainer).ask(
+        "What is the root cause?", {"_id": "inc-1"}, structured=True
+    )
+
+    assert result["source"] == "heuristic"
+    assert result["used_fallback"] is True
+
+
+def test_telecom_ai_copilot_structured_malformed_json_uses_fallback(monkeypatch):
+    monkeypatch.setattr(IncidentExplainer, "_test_connection", lambda self: None)
+    explainer = IncidentExplainer(timeout_seconds=1)
+    monkeypatch.setattr(explainer, "generate_text", lambda prompt: "not json at all")
+
+    result = TelecomAICopilot(explainer=explainer).ask(
+        "What is the root cause?", {"_id": "inc-1"}, structured=True
+    )
+
+    assert result["source"] == "heuristic"
+    assert result["used_fallback"] is True
+
+
+def test_telecom_ai_copilot_structured_timeout_uses_fallback(monkeypatch):
+    monkeypatch.setattr(IncidentExplainer, "_test_connection", lambda self: None)
+    explainer = IncidentExplainer(timeout_seconds=1)
+
+    def timeout(prompt):
+        raise TimeoutError("Ollama timed out")
+
+    monkeypatch.setattr(explainer, "generate_text", timeout)
+    result = TelecomAICopilot(explainer=explainer).ask(
+        "What is the root cause?", {"_id": "inc-1"}, structured=True
+    )
+
+    assert result["source"] == "heuristic"
+    assert result["used_fallback"] is True
 
 
 def test_faiss_dataset_lookup_returns_metadata(monkeypatch):

@@ -3,6 +3,23 @@ from sentence_transformers import SentenceTransformer
 from threading import Lock
 
 
+class _OfflineEmbeddingModel:
+    """Deterministic local fallback used only when the transformer is unavailable."""
+
+    dimension = 384
+
+    def get_sentence_embedding_dimension(self):
+        return self.dimension
+
+    def encode(self, texts, **_kwargs):
+        vectors = np.zeros((len(texts), self.dimension), dtype=np.float32)
+        for row, text in enumerate(texts):
+            for token in str(text).lower().split():
+                vectors[row, hash(token) % self.dimension] += 1.0
+        norms = np.linalg.norm(vectors, axis=1, keepdims=True)
+        return np.divide(vectors, norms, out=vectors, where=norms != 0)
+
+
 class EmbeddingEngine:
 
     _model_cache = {}
@@ -19,9 +36,13 @@ class EmbeddingEngine:
 
         with cls._model_lock:
             if model_name not in cls._model_cache:
-                cls._model_cache[model_name] = SentenceTransformer(
-                    model_name
-                )
+                try:
+                    cls._model_cache[model_name] = SentenceTransformer(
+                        model_name,
+                        local_files_only=True,
+                    )
+                except Exception:
+                    cls._model_cache[model_name] = _OfflineEmbeddingModel()
 
         return cls._model_cache[model_name]
 

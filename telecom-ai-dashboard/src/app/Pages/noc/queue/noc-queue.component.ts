@@ -79,7 +79,7 @@ import { CorrectionModalComponent } from "@app/shared/components/correction-moda
           </div>
 
           <div class="qi-platform">
-            <app-platform-tag [platform]="a.platform"/>
+            <app-platform-tag [platform]="a.platform ?? ''"/>
             <span class="qi-thresh" *ngIf="a.threshold_type">
               seuil {{ a.threshold_type }}
             </span>
@@ -90,16 +90,16 @@ import { CorrectionModalComponent } from "@app/shared/components/correction-moda
             <div class="qm-header">
               <div class="qm-left">
                 <span class="qm-icon" [innerHTML]="a.message | messageIcon"></span>
-                <span class="platform-badge" [class]="'platform-' + a.platform.toLowerCase()">
-                  {{ a.platform | uppercase }}
+                <span class="platform-badge" [class]="'platform-' + (a.platform ?? 'unknown').toLowerCase()">
+                  {{ (a.platform ?? 'Unknown') | uppercase }}
                 </span>
                 <span class="connector-badge" *ngIf="a.message | extractConnector as connector">
                   <span class="connector-icon" [innerHTML]="getConnectorIcon()"></span>
                   {{ connector }}
                 </span>
               </div>
-              <span class="urgency-badge" [class]="'urgency-' + a.urgency.toLowerCase()">
-                {{ a.urgency }}
+              <span class="urgency-badge" [class]="'urgency-' + (a.urgency ?? 'unknown').toLowerCase()">
+                {{ a.urgency ?? 'UNKNOWN' }}
               </span>
             </div>
             

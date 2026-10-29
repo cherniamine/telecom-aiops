@@ -14,6 +14,7 @@ class IncidentSimilarityEngine:
         propagation_path,
         severity,
         root_causes,
+        dry_run=False,
     ):
 
         keywords = self._normalize_root_causes(root_causes)
@@ -47,7 +48,8 @@ class IncidentSimilarityEngine:
             "severity": severity,
         }
 
-        self.db.similar_incidents.insert_one(response)
+        if not dry_run:
+            self.db.similar_incidents.insert_one(response)
 
         return response
 

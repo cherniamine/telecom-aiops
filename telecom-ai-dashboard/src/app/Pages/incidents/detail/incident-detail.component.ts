@@ -27,10 +27,11 @@ import { WhatIfCompareComponent }    from '../../../features/what-if-simulator/w
 import { ExplainPanelComponent }     from '../../../features/ai-copilot/explain-panel.component';
 import { CopilotChatComponent }      from '../../../features/ai-copilot/copilot-chat.component';
 import { SimilaritySearchComponent } from '../../../features/similarity-search/similarity-search.component';
+import { IncidentInvestigationComponent } from '../../../features/incident-investigation/incident-investigation.component';
 import { TabIconComponent } from '@app/shared/components/tab-icon/tab-icon.component';
 import { FormsModule } from '@angular/forms';
 
-type TabId = 'overview' | 'rca' | 'whatif' | 'copilot' | 'faiss';
+type TabId = 'overview' | 'rca' | 'investigation' | 'whatif' | 'copilot' | 'faiss';
 interface Tab { id: TabId; label: string; icon: string; badge?: string; }
 
 @Component({
@@ -42,6 +43,7 @@ interface Tab { id: TabId; label: string; icon: string; badge?: string; }
     CascadeTimelineComponent, RcaPanelComponent, TopologyGraphComponent,
     WhatIfPanelComponent, WhatIfResultComponent, WhatIfCompareComponent,
     ExplainPanelComponent, CopilotChatComponent, SimilaritySearchComponent,
+    IncidentInvestigationComponent,
   ],
   template: `
     <div class="inc-detail" *ngIf="!loading; else spin">
@@ -225,6 +227,11 @@ interface Tab { id: TabId; label: string; icon: string; badge?: string; }
               <button class="tsb-close" (click)="selectedPlatform = ''">✕</button>
             </div>
           </div>
+        </div>
+
+        <!-- ── INVESTIGATION ─────────────────── -->
+        <div *ngIf="activeTab === 'investigation'" class="panel-investigation">
+          <app-incident-investigation [incident]="incident"/>
         </div>
 
         <!-- ── WHAT-IF ──────────────────────── -->
@@ -433,6 +440,7 @@ export class IncidentDetailComponent implements OnInit, OnDestroy {
     readonly tabs: Tab[] = [
     { id: 'overview', label: 'Vue d\'ensemble', icon: 'dashboard' },
     { id: 'rca',      label: 'RCA + Topo',       icon: 'network' },
+    { id: 'investigation', label: 'Investigation', icon: 'investigation', badge: 'AI' },
     { id: 'whatif',   label: 'What-If', icon: 'simulation', badge: 'AI' },
     { id: 'copilot',  label: 'Copilot',  icon: 'ai', badge: 'AI' },
     { id: 'faiss',    label: 'Similarité', icon: 'search', badge: 'AI' },
